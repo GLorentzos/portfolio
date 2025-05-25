@@ -104,6 +104,8 @@
             <h1>Shortly</h1>
             <p style="margin-top:10px; color: rgb(0, 0, 0);">Minimal Flask URL Shortener with Authentication & Analytics</p>
          </div>
+         <h3>Project Details</h3>
+         <p>I built this project alone and did not face any problems during development. I created it because I was bored and wanted to practice my skills.</p>
          <h3>Core Functionality</h3>
          <strong>User authentication</strong> with session management (login, logout, registration) <br>
          <strong>Password hashing</strong> using Bcrypt for secure credential storage<br>
@@ -125,14 +127,14 @@ from wtforms.validators import DataRequired
 from flask_bcrypt import Bcrypt
 import os
 import random</code></pre>
-         <h3>Authentication System <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
+         <h3>Authentication System <span style="font-weight: normal; font-size: 0.9em;">(app.py) (snippet)</span></h3>
          <pre><code>@app.route("/login", methods=['GET','POST'])
 def login():
     user = User.query.filter_by(username=username).first()
     if user and bc.check_password_hash(user.password, password):
         login_user(user)
         return redirect("/")</code></pre>
-         <h3>URL Shortening Logic <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
+         <h3>URL Shortening Logic <span style="font-weight: normal; font-size: 0.9em;">(app.py) (snippet)</span></h3>
          <pre><code>def generate_short_link():
     letters = 'qwertyuiopasdfghjklzxcvbnm'
     return ''.join(random.choice(letters) for _ in range(6))</code></pre>
