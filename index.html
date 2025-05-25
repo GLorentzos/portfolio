@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>George Lorentzos - Portfolio</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-  html, body {
-    height: 100%;
-    min-height: 100vh;
-    margin: 0;
-    background: #f9f9f9;
-    display: grid;
-    place-items: center;
-    color: #333;
-  }
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>George Lorentzos - Portfolio</title>
+      <style>
+         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+         html, body {
+         height: 100%;
+         min-height: 100vh;
+         margin: 0;
+         background: #f9f9f9;
+         display: grid;
+         place-items: center;
+         color: #333;
+         }
          body {
          margin: 0;
          padding: 0 15px;
@@ -23,68 +23,86 @@
          line-height: 1.6;
          color: #2d3436;
          }
-  html::-webkit-scrollbar {
-    display: none;
-  }
-  .container {
-    max-width: 600px;
-    width: 100%;
-    padding: 0 15px;
-    border-radius: 8px;
-    text-align: left;
-  }
-  h1 {
-    margin-bottom: 0.5em;
-    color: #222;
-    font-weight: 600;
-  }
-  .section-title {
-    font-weight: 600;
-    margin-top: 1.5em;
-    margin-bottom: 0.4em;
-    color: #444;
-  }
-  p {
-    line-height: 1.6;
-    margin-top: 0.4em;
-    margin-bottom: 0.8em;
-  }
-  a {
-    color: #0066cc;
-    text-decoration: none;
-    font-weight: 600;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-  .skills {
-    font-size: 0.9rem;
-    margin: 1rem 0;
-    color: #444;
-  }
-  footer {
-    margin-top: 2em;
-    font-size: 0.9em;
-    color: #666;
-  }
-</style>
-</head>
-<body>
-  <div class="container">
-    <h1>George Lorentzos</h1>
-    <p>Backend developer specializing in Python and Flask with coding experience since age 12. Focused on building reliable and efficient web applications.</p>
-    <div class="section-title">Technical Skills</div>
-    <div class="skills">
-      <p><strong>Backend Frameworks:</strong> Flask, Flask Ecosystem, FastAPI</p>
-      <p><strong>Python Libraries:</strong> Pydantic, Requests, Pytest, JSON, Datetime, OS, Pathlib</p>
-      <p><strong>Servers & Deployment:</strong> Gunicorn, Uvicorn, Nginx</p>
-      <p><strong>Frontend Basics:</strong> HTML, CSS, JavaScript, Bootstrap</p>
-      <p><strong>Tools:</strong> Git, Docker, SQL, AWS, Ngrok, Cloudflare Tunnel</p>
-    </div>
-    <p>My Latest Project <a href="projects/shortly.html" style="color: inherit;">Shortly</a></p>
-    <footer>
-      lorentzos.george@icloud.com<br><br>© 2025 George Lorentzos
-    </footer>
-  </div>
-</body>
+         html::-webkit-scrollbar {
+         display: none;
+         }
+         .container {
+         max-width: 600px;
+         width: 100%;
+         padding: 0 15px;
+         border-radius: 8px;
+         text-align: left;
+         }
+         h1 {
+         margin-bottom: 0.5em;
+         color: #222;
+         font-weight: 600;
+         }
+         .section-title {
+         font-weight: 600;
+         margin-top: 1.5em;
+         margin-bottom: 0.4em;
+         color: #444;
+         }
+         p {
+         line-height: 1.6;
+         margin-top: 0.4em;
+         margin-bottom: 0.8em;
+         }
+         a {
+         color: #0066cc;
+         text-decoration: none;
+         font-weight: 600;
+         }
+         a:hover {
+         text-decoration: underline;
+         }
+         .skills {
+         font-size: 0.9rem;
+         margin: 1rem 0;
+         color: #444;
+         }
+         footer {
+         margin-top: 2em;
+         font-size: 0.9em;
+         color: #666;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <h1>George Lorentzos</h1>
+         <p>I am a backend developer specializing in Python and Flask, with coding experience since the age of 12. 
+            I am committed to building reliable, efficient, and scalable web applications. Currently, I am <span id="age"></span> years old.
+         </p>
+         <div class="section-title">Technical Skills</div>
+         <div class="skills">
+            <p><strong>Backend Frameworks:</strong> Flask, Flask-SQLAlchemy, Flask-Login, Flask-WTF, Flask-Bcrypt, Flask-Mail, Flask-SocketIO, FastAPI</p>
+            <p><strong>Python Libraries:</strong> Pydantic, Requests, Pytest, Json, Datetime, Os, Pathlib, Random, Dotenv, Threading</p>
+            <p><strong>Servers & Deployment:</strong> Gunicorn, Uvicorn, Nginx</p>
+            <p><strong>Databases:</strong> PostgreSQL, MySQL, SQLite, MongoDB</p>
+            <p><strong>Frontend Basics:</strong> HTML, CSS, JavaScript, Bootstrap</p>
+            <p><strong>Tools & Platforms:</strong> Git, Docker, SQL, AWS, Ngrok, Cloudflare Tunnel</p>
+         </div>
+         <p>My Latest Project <a href="projects/shortly.html" style="color: inherit;">Shortly</a></p>
+         <footer>
+            lorentzos.george@icloud.com<br><br>© 2025 George Lorentzos
+         </footer>
+      </div>
+      <script>
+         function calculateAge(birthDate) {
+           const today = new Date();
+           const birth = new Date(birthDate);
+           let age = today.getFullYear() - birth.getFullYear();
+           const monthDiff = today.getMonth() - birth.getMonth();
+           if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+             age--;
+           }
+           return age;
+         }
+         const ageSpan = document.getElementById('age');
+         const birthDate = '2008-03-13'; 
+         ageSpan.textContent = calculateAge(birthDate);
+      </script>
+   </body>
 </html>
