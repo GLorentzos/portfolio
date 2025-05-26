@@ -1,0 +1,12 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 25" width="24" height="25">
+	<title>lorentzos</title>
+	<defs>
+		<image width="19" height="19" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAMAAABFjsb+AAAAAXNSR0IB2cksfwAAAMZQTFRFAAAAm6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0m6O0ZjSDKQAAAEJ0Uk5TAB91uN/4t3QPof3/HNQFzcyY8cOQfiGagFQIVnhhBj/I6G82aEFZB01JMYuOfOoDBBktILosIlyD8+nn9sEdFbZw0h+WfwAAANlJREFUeJx1kMsLQUEUxue7udczobwisbRgQcpC/nZ2VuSxUlYicYsQGrc7zhmGu3FqOmd+83XmnA+CAxzKglT6RidCQD8JpdRDswR88Q1LXYkl4YlA2P4ZIi2pCuNhYNQFQg4VMeD6YdJD4cJFEjgZYRqpJ+cM4BqWRW3POe9md4blYHM7UbzFt4bJj64ErH+66oFzZVPe52mdle5XPmrm4E4DLWz9b3vGDevwxx0s5Xs+0Z2zsLkrAhOuGiPa13oG921NaV/RnwR9aQ3/+cfOOh753MNA+/wCRIo/1XXaEsMAAAAASUVORK5CYII="/>
+	</defs>
+	<style>
+		tspan { white-space:pre } 
+		.s0 { fill: #9ba3b4 } 
+	</style>
+	<use id="img1" href="#img1" transform="matrix(1,0,0,1,2,3)"/>
+	<path id="Shape 1" fill-rule="evenodd" class="s0" d="m17 7v11h-11v-11z"/>
+</svg>
