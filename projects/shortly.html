@@ -1,270 +1,348 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shortly</title>
-  <link rel="icon" href="../images/website_icon.svg">
-  <style>
-    :root {
-      --blue: #4daafc;
-      --foreground: #9ba3b4;
-      --background: #0D1117;
-      --header-foreground: #c3d0e5;
-      --codebox: #181f29;
-    }
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Shortly</title>
+      <link rel="icon" href="../images/website_icon.svg">
+      <meta name="author" content="George Lorentzos">
+      <style>
+         :root {
+         --blue: #4daafc;
+         --foreground: #9ba3b4;
+         --background: #0D1117;
+         --header-foreground: #c3d0e5;
+         --codebox: #181f29;
+         }
+         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+         html, body {
+         height: 100%;
+         margin: 0;
+         background: var(--background);
+         color: var(--foreground);
+         font-family: 'Montserrat', sans-serif;
+         line-height: 1.6;
+         -webkit-font-smoothing: antialiased;
+         -moz-osx-font-smoothing: grayscale;
+         }
+         html::-webkit-scrollbar {
+         display: none;
+         }
+         body {
+         padding: 0 15px;
+         box-sizing: border-box;
+         }
+         .container {
+         max-width: 600px;
+         margin: 0 auto;
+         border-radius: 8px;
+         }
+         h1, h2, h3 {
+         color: var(--header-foreground);
+         font-weight: 600;
+         margin-bottom: 0.5em;
+         }
+         h3 {
+         font-size: 1.3em;
+         padding-bottom: 0.5em;
+         }
+         p {
+         margin-top: 0.4em;
+         margin-bottom: 0.8em;
+         }
+         a:hover {
+         text-decoration: underline;
+         }
+         pre {
+         background: var(--codebox);
+         border-radius: 6px;
+         padding: 1.2em;
+         overflow-x: auto;
+         font-size: 0.9rem;
+         line-height: 1.4;
+         margin: 1.5em 0;
+         }
+         pre > code {
+         background: transparent;
+         font-family: 'Fira Code', 'Consolas', monospace;
+         }
+         html::-webkit-scrollbar{
+         display: none;
+         }
+         pre::-webkit-scrollbar {
+         width: 8px;
+         height: 8px;
+         }
+         pre::-webkit-scrollbar-track {
+         background: transparent;
+         border-radius: 8px;
+         }
+         pre::-webkit-scrollbar-thumb {
+         background-color: var(--blue);
+         border-radius: 8px;
+         }
+         .footer {
+         text-align: center;
+         margin-top: 40px;
+         font-size: 0.9em;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <div style="background: transparent; text-align: center; padding: 30px 20px; border-radius: 8px;">
+            <h1>Shortly</h1>
+            <p style="margin-top: 10px;">Minimal Flask URL Shortener with Authentication & Analytics</p>
+         </div>
+         <h3>Project Details</h3>
+         <p>I built this project alone and did not face any problems during development. I created it because I was bored and wanted to practice my skills.</p>
+         <h3>Core Functionality</h3>
+         <strong>User authentication</strong> with session management (login, logout, registration)<br>
+         <strong>Password hashing</strong> using Bcrypt for secure credential storage<br>
+         <strong>URL shortening</strong> with unique 6-character slugs per user<br>
+         <strong>Click tracking</strong> to monitor how many times a short URL is used<br>
+         <strong>User-specific dashboards</strong> showing only the links created by the user<br>
+         <strong>Link deletion</strong> to manage and remove shortened URLs<br>
+         <strong>CSRF-protected forms</strong> via Flask-WTF for all inputs<br>
+         <strong>Database ORM</strong> integration using SQLAlchemy for user and link models<br>
+         <strong>Redirection logic</strong> that maps short links to their original URLs<br>
+         <strong>Custom 404 page</strong> for handling broken or invalid short URLs
+         <h3>All Code <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
+         <pre><code class="language-python">"""
+Shortly - Personal URL Shortener
+Copyright © <span id="year"></span> George Lorentzos All rights reserved.
+Unauthorized copying, reproduction, or distribution is prohibited.
+"""
 
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: var(--background);
-      color: var(--foreground);
-      font-family: 'Montserrat', sans-serif;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    html::-webkit-scrollbar {
-      display: none;
-    }
-
-    body {
-      padding: 0 15px;
-      box-sizing: border-box;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      border-radius: 8px;
-    }
-
-    h1, h2, h3 {
-      color: var(--header-foreground);
-      font-weight: 600;
-      margin-bottom: 0.5em;
-    }
-
-    h3 {
-      font-size: 1.3em;
-      padding-bottom: 0.5em;
-    }
-
-    p {
-      margin-top: 0.4em;
-      margin-bottom: 0.8em;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    pre {
-      background: var(--codebox);
-      border-radius: 6px;
-      padding: 1.2em;
-      overflow-x: auto;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      margin: 1.5em 0;
-    }
-
-    pre > code {
-      background: transparent;
-      font-family: 'Fira Code', 'Consolas', monospace;
-    }
-
-    html::-webkit-scrollbar{
-      display: none;
-    }
-    
-    pre::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    pre::-webkit-scrollbar-track {
-      background: transparent;
-      border-radius: 8px;
-    }
-
-    pre::-webkit-scrollbar-thumb {
-      background-color: var(--blue);
-      border-radius: 8px;
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      font-size: 0.9em;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div style="background: transparent; text-align: center; padding: 30px 20px; border-radius: 8px;">
-      <h1>Shortly</h1>
-      <p style="margin-top: 10px;">Minimal Flask URL Shortener with Authentication & Analytics</p>
-    </div>
-
-    <h3>Project Details</h3>
-    <p>I built this project alone and did not face any problems during development. I created it because I was bored and wanted to practice my skills.</p>
-
-    <h3>Core Functionality</h3>
-    <strong>User authentication</strong> with session management (login, logout, registration)<br>
-    <strong>Password hashing</strong> using Bcrypt for secure credential storage<br>
-    <strong>URL shortening</strong> with unique 6-character slugs per user<br>
-    <strong>Click tracking</strong> to monitor how many times a short URL is used<br>
-    <strong>User-specific dashboards</strong> showing only the links created by the user<br>
-    <strong>Link deletion</strong> to manage and remove shortened URLs<br>
-    <strong>CSRF-protected forms</strong> via Flask-WTF for all inputs<br>
-    <strong>Database ORM</strong> integration using SQLAlchemy for user and link models<br>
-    <strong>Redirection logic</strong> that maps short links to their original URLs<br>
-    <strong>Custom 404 page</strong> for handling broken or invalid short URLs
-
-    <h3>Tech Stack <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
-    <pre><code class="language-python">from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import UserMixin, LoginManager, login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, EmailField, PasswordField, SubmitField
+from wtforms import StringField, EmailField, PasswordField ,SubmitField
 from wtforms.validators import DataRequired
 from flask_bcrypt import Bcrypt
-import os
-import random</code></pre>
+import os 
+import random
+from dotenv import load_dotenv
 
-    <h3>Authentication System <span style="font-weight: normal; font-size: 0.9em;">(app.py) (snippet)</span></h3>
-    <pre><code class="language-python">@app.route("/login", methods=['GET','POST'])
-def login():
-    user = User.query.filter_by(username=username).first()
-    if user and bc.check_password_hash(user.password, password):
-        login_user(user)
-        return redirect("/")</code></pre>
+load_dotenv()
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shortly.db'
+lm = LoginManager(app)
+db = SQLAlchemy(app)
+bc = Bcrypt(app)
 
-    <h3>URL Shortening Logic <span style="font-weight: normal; font-size: 0.9em;">(app.py) (snippet)</span></h3>
-    <pre><code class="language-python">def generate_short_link():
-    letters = 'qwertyuiopasdfghjklzxcvbnm'
-    return ''.join(random.choice(letters) for _ in range(6))</code></pre>
-
-    <h3>Database Models <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
-    <pre><code class="language-python">class User(UserMixin, db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    password = db.Column(db.String(280))
-    short_links = db.relationship("ShortURL", backref='owner')
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(280), nullable=False)
+    email = db.Column(db.String(280), nullable=False)
+    short_links = db.relationship("ShortURL", backref='owner', lazy=True)
 
 class ShortURL(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
     link = db.Column(db.String, nullable=False)
-    short_link = db.Column(db.String, unique=True)
-    clicks = db.Column(db.Integer, default=0)</code></pre>
+    short_link = db.Column(db.String, unique=True, nullable=False)
+    clicks = db.Column(db.Integer, default=0)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    <h3>Project Structure</h3>
-    <pre><code>├── app.py
-├── templates/
-│   ├── main.html
-│   ├── login.html
-│   ├── register.html
-│   └── 404.html
-└── instance/
-    └── shortly.db</code></pre>
+class Auth(FlaskForm):
+    username = StringField("username", validators=[DataRequired()])
+    password = PasswordField("password", validators=[DataRequired()])
+    email = EmailField("email")
+    submit = SubmitField()
 
-    <div class="footer">
-      <span>© 2025 Lorentzos.</span>
-    </div>
-    <br>
-  </div>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-  const keywords = ['def', 'return', 'if', 'else', 'elif', 'for', 'while', 'in', 'and', 'or', 'not', 'class', 'from', 'import', 'as', 'with', 'try', 'except', 'finally', 'raise'];
-  const builtins = ['print', 'len', 'int', 'str', 'list', 'dict', 'set', 'bool', 'range', 'type', 'None', 'True', 'False'];
-  document.querySelectorAll('pre > code').forEach(codeBlock => {
-    if (codeBlock.classList.contains('language-python') || codeBlock.textContent.match(/\b(def|return|from|import)\b/)) {
-      codeBlock.classList.add('language-python');
-      const text = codeBlock.textContent;
-      const tokens = [];
-      let current = '';
-      let i = 0;
-      while (i < text.length) {
-        if (text[i].match(/[a-zA-Z_]/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
-          let word = '';
-          while (i < text.length && text[i].match(/[a-zA-Z0-9_]/)) {
-            word += text[i];
-            i++;
-          }
-          if (keywords.includes(word)) {
-            tokens.push(`<span class="token-keyword">${word}</span>`);
-          } else if (builtins.includes(word)) {
-            tokens.push(`<span class="token-builtin">${word}</span>`);
-          } else if (word && tokens[tokens.length-1] === '<span class="token-keyword">def</span> ') {
-            tokens.push(`<span class="token-function">${word}</span>`);
-          } else {
-            tokens.push(word);
-          }
-          continue;
-        }
-        if (text[i] === "'" || text[i] === '"') {
-          let str = text[i];
-          i++;
-          while (i < text.length && text[i] !== str[0]) {
-            str += text[i];
-            i++;
-          }
-          if (i < text.length) str += text[i];
-          i++;
-          tokens.push(`<span class="token-string">${str}</span>`);
-          continue;
-        }
-        if (text[i].match(/\d/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
-          let num = '';
-          while (i < text.length && text[i].match(/\d/)) {
-            num += text[i];
-            i++;
-          }
-          tokens.push(`<span class="token-number">${num}</span>`);
-          continue;
-        }
-        if (text[i].match(/[.,:;()\[\]{}]/)) {
-          tokens.push(`<span class="token-punctuation">${text[i]}</span>`);
-          i++;
-          continue;
-        }
-        tokens.push(text[i]);
-        i++;
-      }
-      codeBlock.innerHTML = tokens.join('');
-    }
-  });
-  const style = document.createElement('style');
-  style.textContent = `
-    pre > code.language-python {
-      background: var(--codebox);
-      color: #abb2bf;
-      font-family: 'Fira Code', 'Consolas', monospace;
-    }
-    pre > code.language-python .token-keyword {
-      color: #c678dd;
-    }
-    pre > code.language-python .token-function {
-      color: #e6c07b;
-    }
-    pre > code.language-python .token-string {
-      color: #98c379;
-    }
-    pre > code.language-python .token-number {
-      color: #d19a66;
-    }
-    pre > code.language-python .token-builtin {
-      color: #56b6c2;
-    }
-    pre > code.language-python .token-punctuation {
-      color: #abb2bf;
-    }
-  `;
-  document.head.appendChild(style);
-});
-</script>
-</body>
+class LinkForm(FlaskForm):
+    link = StringField("link", validators=[DataRequired()])
+    submit = SubmitField()
+
+@app.errorhandler(404)
+def page_not_found():
+    return render_template("404.html")
+
+@lm.user_loader
+def user_loader(user_id):
+    return User.query.get(int(user_id))
+
+@app.route("/", methods=['GET','POST'])
+@login_required
+def main():
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    form = LinkForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        link = form.link.data
+        short_link = ''
+        latters = 'qwertyuiopasdfghjklzxcvbnm'
+        for _ in range(6):
+            short_link += random.choice(latters)
+        user_id = current_user.id
+        newShort = ShortURL(link=link, short_link=short_link, user_id=user_id)
+        db.session.add(newShort)
+        db.session.commit()
+        return redirect("/")
+    short_links = ShortURL.query.filter_by(user_id=current_user.id).order_by(ShortURL.short_link.desc()).all()
+    return render_template("main.html", form=form, short_links=short_links)
+
+@app.route("/login", methods=['GET','POST'])
+def login():
+    form = Auth()
+    if request.method == 'POST' and form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(username=username).first()
+        if user and bc.check_password_hash(user.password, password):
+            login_user(user)
+            return redirect("/")
+        elif not user:
+            flash("user does not exist")
+            return redirect("/login")
+        else:
+            flash("wrong password")
+            return redirect("/login")
+    return render_template("login.html", form=form)
+
+@app.route("/register", methods=['GET','POST'])
+def register():
+    form = Auth()
+    if request.method == 'POST' and form.validate_on_submit():
+        username = form.username.data
+        password = bc.generate_password_hash(form.password.data)
+        email = form.email.data
+        user = User.query.filter_by(username=username).first()
+        if user:
+            flash("username already exists")
+            return redirect("/register")
+        newUser = User(username=username,password=password,email=email)
+        db.session.add(newUser)
+        db.session.commit()
+        return redirect("/login")
+    return render_template("register.html",form=form)
+
+@app.route("/<string:short_link>")
+def short_link(short_link):
+    short_link = ShortURL.query.filter_by(short_link=short_link).first()
+    short_link.clicks += 1
+    db.session.commit()
+    return redirect(short_link.link)
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect("/login")
+
+@app.route("/delete/<string:short_link>")
+@login_required
+def delete_short_url(short_link):
+    short_link_obj = ShortURL.query.filter_by(user_id=current_user.id, short_link=short_link).first()
+    if short_link_obj:
+        db.session.delete(short_link_obj)
+        db.session.commit()
+    return redirect("/")
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)</code></pre>
+         <div class="footer">
+            <span>© 2025 Lorentzos.</span>
+         </div>
+         <br>
+      </div>
+      <script>
+         document.addEventListener('DOMContentLoaded', function () {
+         const keywords = ['def', 'return', 'if', 'else', 'elif', 'for', 'while', 'in', 'and', 'or', 'not', 'class', 'from', 'import', 'as', 'with', 'try', 'except', 'finally', 'raise'];
+         const builtins = ['print', 'len', 'int', 'str', 'list', 'dict', 'set', 'bool', 'range', 'type', 'None', 'True', 'False'];
+         document.querySelectorAll('pre > code').forEach(codeBlock => {
+           if (codeBlock.classList.contains('language-python') || codeBlock.textContent.match(/\b(def|return|from|import)\b/)) {
+             codeBlock.classList.add('language-python');
+             const text = codeBlock.textContent;
+             const tokens = [];
+             let current = '';
+             let i = 0;
+             while (i < text.length) {
+               if (text[i].match(/[a-zA-Z_]/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let word = '';
+                 while (i < text.length && text[i].match(/[a-zA-Z0-9_]/)) {
+                   word += text[i];
+                   i++;
+                 }
+                 if (keywords.includes(word)) {
+                   tokens.push(`<span class="token-keyword">${word}</span>`);
+                 } else if (builtins.includes(word)) {
+                   tokens.push(`<span class="token-builtin">${word}</span>`);
+                 } else if (word && tokens[tokens.length-1] === '<span class="token-keyword">def</span> ') {
+                   tokens.push(`<span class="token-function">${word}</span>`);
+                 } else {
+                   tokens.push(word);
+                 }
+                 continue;
+               }
+               if (text[i] === "'" || text[i] === '"') {
+                 let str = text[i];
+                 i++;
+                 while (i < text.length && text[i] !== str[0]) {
+                   str += text[i];
+                   i++;
+                 }
+                 if (i < text.length) str += text[i];
+                 i++;
+                 tokens.push(`<span class="token-string">${str}</span>`);
+                 continue;
+               }
+               if (text[i].match(/\d/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let num = '';
+                 while (i < text.length && text[i].match(/\d/)) {
+                   num += text[i];
+                   i++;
+                 }
+                 tokens.push(`<span class="token-number">${num}</span>`);
+                 continue;
+               }
+               if (text[i].match(/[.,:;()\[\]{}]/)) {
+                 tokens.push(`<span class="token-punctuation">${text[i]}</span>`);
+                 i++;
+                 continue;
+               }
+               tokens.push(text[i]);
+               i++;
+             }
+             codeBlock.innerHTML = tokens.join('');
+           }
+         });
+         const style = document.createElement('style');
+         style.textContent = `
+           pre > code.language-python {
+             background: var(--codebox);
+             color: #abb2bf;
+             font-family: 'Fira Code', 'Consolas', monospace;
+           }
+           pre > code.language-python .token-keyword {
+             color: #c678dd;
+           }
+           pre > code.language-python .token-function {
+             color: #e6c07b;
+           }
+           pre > code.language-python .token-string {
+             color: #98c379;
+           }
+           pre > code.language-python .token-number {
+             color: #d19a66;
+           }
+           pre > code.language-python .token-builtin {
+             color: #56b6c2;
+           }
+           pre > code.language-python .token-punctuation {
+             color: #abb2bf;
+           }
+         `;
+         document.head.appendChild(style);
+         });
+      </script>
+      <script>
+         document.getElementById('year').textContent = new Date().getFullYear();
+      </script>
+   </body>
 </html>

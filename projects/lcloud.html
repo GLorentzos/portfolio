@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Lcloud</title>
+      <link rel="icon" href="../images/website_icon.svg">
+      <meta name="author" content="George Lorentzos">
+      <style>
+         :root {
+         --blue: #4daafc;
+         --foreground: #9ba3b4;
+         --background: #0D1117;
+         --header-foreground: #c3d0e5;
+         --codebox: #181f29;
+         }
+         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+         html, body {
+         height: 100%;
+         margin: 0;
+         background: var(--background);
+         color: var(--foreground);
+         font-family: 'Montserrat', sans-serif;
+         line-height: 1.6;
+         -webkit-font-smoothing: antialiased;
+         -moz-osx-font-smoothing: grayscale;
+         }
+         html::-webkit-scrollbar {
+         display: none;
+         }
+         body {
+         padding: 0 15px;
+         box-sizing: border-box;
+         }
+         .container {
+         max-width: 600px;
+         margin: 0 auto;
+         border-radius: 8px;
+         }
+         h1, h2, h3 {
+         color: var(--header-foreground);
+         font-weight: 600;
+         margin-bottom: 0.5em;
+         }
+         h3 {
+         font-size: 1.3em;
+         padding-bottom: 0.5em;
+         }
+         p {
+         margin-top: 0.4em;
+         margin-bottom: 0.8em;
+         }
+         a:hover {
+         text-decoration: underline;
+         }
+         pre {
+         background: var(--codebox);
+         border-radius: 6px;
+         padding: 1.2em;
+         overflow-x: auto;
+         font-size: 0.9rem;
+         line-height: 1.4;
+         margin: 1.5em 0;
+         }
+         pre > code {
+         background: transparent;
+         font-family: 'Fira Code', 'Consolas', monospace;
+         }
+         html::-webkit-scrollbar{
+         display: none;
+         }
+         pre::-webkit-scrollbar {
+         width: 8px;
+         height: 8px;
+         }
+         pre::-webkit-scrollbar-track {
+         background: transparent;
+         border-radius: 8px;
+         }
+         pre::-webkit-scrollbar-thumb {
+         background-color: var(--blue);
+         border-radius: 8px;
+         }
+         .footer {
+         text-align: center;
+         margin-top: 40px;
+         font-size: 0.9em;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <div style="background: transparent; text-align: center; padding: 30px 20px; border-radius: 8px;">
+            <h1>Lcloud</h1>
+            <p style="margin-top: 10px;">A Simple Cloud Storage with Authentication , Dashboard, Account Managment</p>
+         </div>
+         <h3>Project Details</h3>
+         <p>
+            I developed this project independently using Flask to build a simple cloud storage web application. It includes user registration, login, account management, and file operations such as upload, download, deletion, and renaming.
+         </p>
+         <p>
+            During development, I encountered and overcame several technical challenges:
+         </p>
+         <ul>
+            <li>
+               <strong>Database Relationship Issue:</strong> I initially forgot to define the foreign key relationship between the <code>File</code> and <code>User</code> models. This caused issues with file ownership and user-specific queries. I resolved it by researching on Stack Overflow and correctly implementing the foreign key using SQLAlchemy’s ORM features.
+            </li>
+            <li>
+               <strong>File Renaming Complexity:</strong> Files were stored using a structured path format like <code>storage/username/filename</code>. When implementing the rename feature, I had to ensure the file path remained valid while updating only the filename. I solved this using Python's <code>os.path.dirname()</code> and <code>os.path.basename()</code> to extract and reconstruct the path safely.
+            </li>
+         </ul>
+         <p>
+            Additionally, I learned to enforce unique constraints on the database by using:
+         </p>
+         <pre><code>__table_args__ = (
+    database.UniqueConstraint('filename', 'user_id', name='unique_filename_per_user'),
+)</code></pre>
+         <p>
+            This helped me ensure that each user cannot have duplicate filenames, improving data integrity. Implementing full account management—including registration, secure password hashing, login sessions, profile updates, and account deletion—strengthened my understanding of user authentication and data security in Flask.
+         </p>
+         <p>
+            Overall, these challenges significantly improved my skills with Flask, SQLAlchemy, Flask-Login, Flask-WTF, and Python's file system handling, while also enhancing my problem-solving abilities and understanding of best practices in web development.
+         </p>
+         <h3>Core Functionality</h3>
+         <strong>User authentication</strong> with session management (login, logout, registration)<br>
+         <strong>Password hashing</strong> using Bcrypt for secure password storage<br>
+         <strong>User-specific storage folders</strong> to isolate uploaded files per user<br>
+         <strong>File upload handling</strong> with file size tracking and metadata stored in the database<br>
+         <strong>User-specific dashboards</strong> showing only files uploaded by the logged-in user<br>
+         <strong>File deletion</strong> to remove files from both storage and database<br>
+         <strong>File download</strong> with safe serving from user-specific directories<br>
+         <strong>File renaming</strong> with synchronized updates to filesystem and database<br>
+         <strong>CSRF-protected forms</strong> using Flask-WTF for all user inputs<br>
+         <strong>Database ORM</strong> integration using SQLAlchemy for User and File models<br>
+         <strong>Flash messages</strong> to provide user feedback on actions<br>
+         <strong>Login required decorators</strong> to protect routes that require authentication<br>
+         <strong>Dynamic folder creation</strong> for new users to manage their files separately<br>
+         <strong>Subscription management</strong> integrated with Stripe for paid storage plans<br>
+         <strong>Account management</strong> including user profile updates (e.g., change name) and account deletion<br>
+         <h3>All Code <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
+         <pre><code class="language-python">"""
+Lcloud - Personal Cloud Storage
+Copyright © <span id="year"></span> George Lorentzos All rights reserved.
+Unauthorized copying, reproduction, or distribution is prohibited.
+"""
+
+from flask import Flask, render_template, redirect, url_for, request, flash, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+from flask_wtf import FlaskForm
+from wtforms import StringField, EmailField, PasswordField, SubmitField, FileField 
+from wtforms.validators import DataRequired
+from flask_bcrypt import Bcrypt
+import os
+import datetime
+import shutil
+from dotenv import load_dotenv
+
+load_dotenv()
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///lcloud.db'
+database = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@login_manager.user_loader
+def load_user_by_id(user_id):
+    return User.query.get(int(user_id))
+
+storage_folder = 'storage'
+if not os.path.exists(storage_folder):
+    os.mkdir(storage_folder)
+
+class User(UserMixin, database.Model):
+    id = database.Column(database.Integer, primary_key=True)
+    username = database.Column(database.String(80), unique=True, nullable=False)
+    email = database.Column(database.String(255), unique=True, nullable=False)
+    hashed_password = database.Column(database.String(280), nullable=False)
+    folder_path = database.Column(database.String, nullable=False)
+    files = database.relationship("File", backref="owner", lazy=True)
+
+class File(database.Model):
+    id = database.Column(database.Integer, primary_key=True)
+    filename = database.Column(database.String, nullable=False)
+    filesize = database.Column(database.Integer, nullable=False)
+    upload_date = database.Column(database.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    file_path = database.Column(database.String, nullable=False)
+    user_id = database.Column(database.Integer, database.ForeignKey('user.id'), nullable=False)
+
+    __table_args__ = (
+        database.UniqueConstraint('filename', 'user_id', name='unique_filename_per_user'),
+    )
+
+class AccountForm(FlaskForm):
+    username = StringField("name")
+    email = EmailField("email")
+    password = PasswordField("password")
+    confirm_password = PasswordField("confirm_password")
+    submit = SubmitField()
+
+class RegistrationForm(FlaskForm):
+    username = StringField("name", validators=[DataRequired()])
+    email = EmailField("email", validators=[DataRequired()])
+    password = PasswordField("password", validators=[DataRequired()])
+    submit = SubmitField()
+
+class LoginForm(FlaskForm):
+    username = StringField("name", validators=[DataRequired()])
+    password = PasswordField("password", validators=[DataRequired()])
+    submit = SubmitField()
+
+class FileUploadForm(FlaskForm):
+    file = FileField("Upload File", validators=[DataRequired()])
+    submit = SubmitField()
+
+class RenameForm(FlaskForm):
+    new_filename = StringField("new name", validators=[DataRequired()])
+    submit = SubmitField()
+
+class DeleteAccountForm(FlaskForm):
+    submit = SubmitField("DELETE ACCOUNT")
+
+@login_required
+@app.route("/", methods=['GET','POST'])
+@app.route("/dashboard", methods=['GET','POST'])
+def dashboard():
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    upload_form = FileUploadForm()
+    if request.method == 'POST':
+        if upload_form.validate_on_submit():
+            uploaded_file = upload_form.file.data
+            user_folder_path = os.path.join(storage_folder, current_user.username)
+            saved_file_path = os.path.join(user_folder_path, uploaded_file.filename)
+            if not os.path.exists(user_folder_path):
+                try:
+                    os.mkdir(user_folder_path)
+                except Exception as e:
+                    flash(f"Failed to create user directory: {e}", "danger")
+                    return redirect("/")
+            if not os.path.exists(saved_file_path):
+                try:
+                    uploaded_file.save(saved_file_path)
+                    new_db_file = File(
+                        filename=uploaded_file.filename,
+                        filesize=os.path.getsize(saved_file_path),
+                        file_path=saved_file_path,
+                        user_id=current_user.id
+                    )
+                    database.session.add(new_db_file)
+                    database.session.commit()
+                    flash("File uploaded successfully!", "success")
+                    return redirect("/")
+                except Exception as e:
+                    flash(f"Error saving file: {e}", "danger")
+                    return redirect("/")
+            else:
+                flash("File already exists", "warning")
+                return redirect("/")
+        else:
+            flash("Invalid file upload", "warning")
+            return redirect("/")
+    user_files = File.query.filter_by(user_id=current_user.id).order_by(File.filename.desc()).all()
+    total_storage_used = sum(int(f.filesize) for f in user_files)
+    return render_template("dashboard.html", file_upload_form=upload_form, files=user_files, rename_form=RenameForm(), total_storage=total_storage_used)
+
+@app.route("/register", methods=['GET','POST'])
+def register():
+    registration_form = RegistrationForm()
+    if request.method == 'POST':
+        if registration_form.validate_on_submit():
+            username = str(registration_form.username.data)
+            email = registration_form.email.data
+            hashed_password = bcrypt.generate_password_hash(registration_form.password.data).decode('utf-8')
+            existing_user = User.query.filter_by(username=username).first()
+            existing_email = User.query.filter_by(email=email).first()
+            if existing_user:
+                flash("Name already exists", "warning")
+                return redirect("/register")
+            elif existing_email:
+                flash("This email is already registered", "warning")
+                return redirect("/register")
+            else:
+                try:
+                    user_folder_path = os.path.join(storage_folder, username)
+                    if not os.path.exists(user_folder_path):
+                        os.mkdir(user_folder_path)
+                    new_user = User(username=username, email=email, hashed_password=hashed_password, folder_path=user_folder_path)
+                    database.session.add(new_user)
+                    database.session.commit()
+                    flash("Registration successful. Please log in.", "success")
+                    return redirect("/login")
+                except Exception as e:
+                    flash(f"Error during registration: {e}", "danger")
+                    return redirect("/register")
+        else:
+            flash("Please fill out the form correctly.", "warning")
+            return redirect("/register")
+    return render_template("register.html", register_form=registration_form)
+
+@app.route("/login",methods=['GET','POST'])
+def login():
+    login_form = LoginForm()
+    if request.method == 'POST':
+        if login_form.validate_on_submit():
+            username = login_form.username.data
+            password = login_form.password.data
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                flash("User does not exist.", "warning")
+                return redirect("/login")
+            elif bcrypt.check_password_hash(user.hashed_password, password):
+                login_user(user)
+                return redirect("/")
+            else:
+                flash("Incorrect password. Please try again.", "danger")
+                return redirect("/login")
+        else:
+            flash("Please fill out the form correctly.", "warning")
+            return redirect("/login")
+    return render_template("login.html", login_form=login_form)
+
+@login_required
+@app.route("/delete/<string:filename>")
+def delete_file(filename):
+    file_to_delete = File.query.filter_by(filename=filename).first()
+    if file_to_delete:
+        try:
+            database.session.delete(file_to_delete)
+            database.session.commit()
+            if os.path.exists(file_to_delete.file_path):
+                os.remove(file_to_delete.file_path)
+            flash("File deleted successfully.", "success")
+        except Exception as e:
+            flash(f"Failed to delete file: {e}", "danger")
+    else:
+        flash("File not found.", "warning")
+    return redirect("/")
+
+@login_required
+@app.route("/download/<string:filename>")
+def download_file(filename):
+    file_to_download = File.query.filter_by(filename=filename).first()
+    if file_to_download and os.path.exists(file_to_download.file_path):
+        normalized_path = os.path.normpath(file_to_download.file_path)
+        directory_path = os.path.dirname(normalized_path)
+        actual_filename = os.path.basename(normalized_path)
+        return send_from_directory(directory_path, actual_filename, as_attachment=True)
+    else:
+        flash("File not found or inaccessible.", "warning")
+        return redirect("/")
+
+@login_required
+@app.route("/rename", methods=['GET','POST'])
+def rename_file():
+    rename_form = RenameForm()
+    if request.method == 'POST':
+        if rename_form.validate_on_submit():
+            old_filename = request.form.get("filename")
+            new_filename = rename_form.new_filename.data
+            file_to_rename = File.query.filter_by(filename=old_filename, user_id=current_user.id).first()
+            if file_to_rename:
+                old_file_path = file_to_rename.file_path
+                user_folder_path = os.path.dirname(old_file_path)
+                new_file_path = os.path.join(user_folder_path, new_filename)
+                if not os.path.exists(new_file_path):
+                    try:
+                        os.rename(old_file_path, new_file_path)
+                        file_to_rename.filename = new_filename
+                        file_to_rename.file_path = new_file_path
+                        database.session.commit()
+                        flash("File renamed successfully.", "success")
+                        return redirect("/")
+                    except Exception as e:
+                        flash(f"Failed to rename file: {e}", "danger")
+                        return redirect("/")
+                else:
+                    flash("A file with the new name already exists.", "warning")
+                    return redirect("/")
+            else:
+                flash("File not found.", "warning")
+                return redirect("/")
+        else:
+            flash("Invalid rename form submission.", "warning")
+            return redirect("/")
+    return redirect("/")
+
+@login_required
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect("/")
+
+@login_required
+@app.route("/account", methods=['GET', 'POST'])
+def account():
+    account_form = AccountForm()
+    delete_account_form = DeleteAccountForm()
+    if request.method == 'POST':
+        if account_form.validate_on_submit():
+            new_username = account_form.username.data
+            new_email = account_form.email.data
+            new_password = account_form.password.data
+            confirm_password = account_form.confirm_password.data
+            old_username = current_user.username
+            old_folder_path = os.path.join(storage_folder, old_username)
+            new_folder_path = os.path.join(storage_folder, new_username)
+            if new_username and new_username != old_username:
+                if os.path.exists(old_folder_path):
+                    try:
+                        os.rename(old_folder_path, new_folder_path)
+                    except Exception as e:
+                        flash(f"Failed to rename user folder: {e}", "danger")
+                        return redirect("/account")
+                user_files = File.query.filter_by(user_id=current_user.id).all()
+                for user_file in user_files:
+                    user_file.file_path = user_file.file_path.replace(old_folder_path, new_folder_path)
+            current_user.folder_path = new_folder_path
+            current_user.username = new_username
+            if new_email and new_email != current_user.email:
+                current_user.email = new_email
+            if new_password:
+                if new_password != confirm_password:
+                    flash("Passwords do not match.", "danger")
+                    return redirect("/account")
+                else:
+                    hashed_new_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                    current_user.hashed_password = hashed_new_password
+            try:
+                database.session.commit()
+                flash("Account updated successfully!", "success")
+                return redirect("/account")
+            except Exception as e:
+                flash(f"Failed to update account: {e}", "danger")
+                return redirect("/account")
+        else:
+            flash("Please fill out the form correctly.", "warning")
+            return redirect("/account")
+    account_form.username.data = current_user.username
+    account_form.email.data = current_user.email
+    return render_template("account.html", account_form=account_form, BTN=delete_account_form)
+
+@app.route("/delete_account", methods=['GET', 'POST'])
+@login_required
+def delete_account():
+    delete_account_btn = DeleteAccountForm()
+    if request.method == 'POST' and delete_account_btn.validate_on_submit():
+        user_to_delete = User.query.filter_by(username=current_user.username).first()
+        user_files = File.query.filter_by(user_id=current_user.id)
+        if user_to_delete:
+            try:
+                shutil.rmtree(user_to_delete.folder_path)
+            except Exception as e:
+                flash(f"Failed to remove user folder: {e}", "danger")
+                return redirect("/account")
+            try:
+                for file_item in user_files:
+                    database.session.delete(file_item)
+                database.session.delete(user_to_delete)
+                database.session.commit()
+                flash("Account and files deleted successfully.", "success")
+            except Exception as e:
+                flash(f"Failed to delete user data: {e}", "danger")
+                return redirect("/account")
+        else:
+            flash("User not found.", "warning")
+            return redirect("/account")
+        logout_user()
+        return redirect("/login")
+    else:
+        flash("Please confirm account deletion.", "warning")
+        return redirect("/account")
+
+if __name__ == "__main__":
+    with app.app_context():
+        database.create_all()
+    app.run(debug=True)</code></pre>
+         <div class="footer">
+            <span>© 2025 Lorentzos.</span>
+         </div>
+         <br>
+      </div>
+      <script>
+         document.addEventListener('DOMContentLoaded', function () {
+         const keywords = ['def', 'return', 'if', 'else', 'elif', 'for', 'while', 'in', 'and', 'or', 'not', 'class', 'from', 'import', 'as', 'with', 'try', 'except', 'finally', 'raise'];
+         const builtins = ['print', 'len', 'int', 'str', 'list', 'dict', 'set', 'bool', 'range', 'type', 'None', 'True', 'False'];
+         document.querySelectorAll('pre > code').forEach(codeBlock => {
+           if (codeBlock.classList.contains('language-python') || codeBlock.textContent.match(/\b(def|return|from|import)\b/)) {
+             codeBlock.classList.add('language-python');
+             const text = codeBlock.textContent;
+             const tokens = [];
+             let current = '';
+             let i = 0;
+             while (i < text.length) {
+               if (text[i].match(/[a-zA-Z_]/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let word = '';
+                 while (i < text.length && text[i].match(/[a-zA-Z0-9_]/)) {
+                   word += text[i];
+                   i++;
+                 }
+                 if (keywords.includes(word)) {
+                   tokens.push(`<span class="token-keyword">${word}</span>`);
+                 } else if (builtins.includes(word)) {
+                   tokens.push(`<span class="token-builtin">${word}</span>`);
+                 } else if (word && tokens[tokens.length-1] === '<span class="token-keyword">def</span> ') {
+                   tokens.push(`<span class="token-function">${word}</span>`);
+                 } else {
+                   tokens.push(word);
+                 }
+                 continue;
+               }
+               if (text[i] === "'" || text[i] === '"') {
+                 let str = text[i];
+                 i++;
+                 while (i < text.length && text[i] !== str[0]) {
+                   str += text[i];
+                   i++;
+                 }
+                 if (i < text.length) str += text[i];
+                 i++;
+                 tokens.push(`<span class="token-string">${str}</span>`);
+                 continue;
+               }
+               if (text[i].match(/\d/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let num = '';
+                 while (i < text.length && text[i].match(/\d/)) {
+                   num += text[i];
+                   i++;
+                 }
+                 tokens.push(`<span class="token-number">${num}</span>`);
+                 continue;
+               }
+               if (text[i].match(/[.,:;()\[\]{}]/)) {
+                 tokens.push(`<span class="token-punctuation">${text[i]}</span>`);
+                 i++;
+                 continue;
+               }
+               tokens.push(text[i]);
+               i++;
+             }
+             codeBlock.innerHTML = tokens.join('');
+           }
+         });
+         const style = document.createElement('style');
+         style.textContent = `
+           pre > code.language-python {
+             background: var(--codebox);
+             color: #abb2bf;
+             font-family: 'Fira Code', 'Consolas', monospace;
+           }
+           pre > code.language-python .token-keyword {
+             color: #c678dd;
+           }
+           pre > code.language-python .token-function {
+             color: #e6c07b;
+           }
+           pre > code.language-python .token-string {
+             color: #98c379;
+           }
+           pre > code.language-python .token-number {
+             color: #d19a66;
+           }
+           pre > code.language-python .token-builtin {
+             color: #56b6c2;
+           }
+           pre > code.language-python .token-punctuation {
+             color: #abb2bf;
+           }
+         `;
+         document.head.appendChild(style);
+         });
+      </script>
+      <script>
+         document.getElementById('year').textContent = new Date().getFullYear();
+      </script>
+   </body>
+</html>
