@@ -121,22 +121,24 @@
          <p>
             Overall, these challenges significantly improved my skills with Flask, SQLAlchemy, Flask-Login, Flask-WTF, and Python's file system handling, while also enhancing my problem-solving abilities and understanding of best practices in web development.
          </p>
-         <h3>Core Functionality</h3>
-         <strong>User authentication</strong> with session management (login, logout, registration)<br>
-         <strong>Password hashing</strong> using Bcrypt for secure password storage<br>
-         <strong>User-specific storage folders</strong> to isolate uploaded files per user<br>
-         <strong>File upload handling</strong> with file size tracking and metadata stored in the database<br>
-         <strong>User-specific dashboards</strong> showing only files uploaded by the logged-in user<br>
-         <strong>File deletion</strong> to remove files from both storage and database<br>
-         <strong>File download</strong> with safe serving from user-specific directories<br>
-         <strong>File renaming</strong> with synchronized updates to filesystem and database<br>
-         <strong>CSRF-protected forms</strong> using Flask-WTF for all user inputs<br>
-         <strong>Database ORM</strong> integration using SQLAlchemy for User and File models<br>
-         <strong>Flash messages</strong> to provide user feedback on actions<br>
-         <strong>Login required decorators</strong> to protect routes that require authentication<br>
-         <strong>Dynamic folder creation</strong> for new users to manage their files separately<br>
-         <strong>Subscription management</strong> integrated with Stripe for paid storage plans<br>
-         <strong>Account management</strong> including user profile updates (e.g., change name) and account deletion<br>
+    <h3>Core Functionality</h3>
+         <strong>User Authentication</strong> with session management using Flask-Login for secure login, logout, and registration<br><br>
+         <strong>Password Hashing</strong> using Flask-Bcrypt for secure password storage<br><br>
+         <strong>User-Specific Storage Folders</strong> to isolate uploaded files per user with dynamic folder creation<br><br>
+         <strong>File Upload Handling</strong> with file size tracking, secure filename handling, and metadata stored in SQLite via SQLAlchemy<br><br>
+         <strong>Storage Limit Enforcement</strong> to restrict uploads based on user-specific storage quotas (default 2GB)<br><br>
+         <strong>User-Specific Dashboards</strong> displaying files, total storage usage, and upload forms for logged-in users<br><br>
+         <strong>File Deletion</strong> to remove files from both filesystem and database with error handling<br><br>
+         <strong>File Download</strong> with secure serving from user-specific directories using Flask’s send_from_directory<br><br>
+         <strong>File Renaming</strong> with synchronized updates to filesystem and database, ensuring unique filenames per user<br><br>
+         <strong>CSRF-Protected Forms</strong> using Flask-WTF for secure user inputs across registration, login, upload, and rename forms<br><br>
+         <strong>Database ORM</strong> integration using SQLAlchemy for User and File models with relationships and unique constraints<br><br>
+         <strong>Flash Messages</strong> to provide user feedback on actions (success, warning, danger)<br><br>
+         <strong>Login-Required Decorators</strong> to protect routes and ensure authenticated access<br><br>
+         <strong>Dynamic Folder Creation</strong> for new users to manage their files in isolated directories<br><br>
+         <strong>Account Management</strong> allowing users to update username, email, password, and delete their account with associated files<br><br>
+         <strong>Environment Variable Management</strong> using python-dotenv for secure storage of sensitive data like SECRET_KEY<br><br>
+         <strong>Error Handling</strong> with custom 404 page and try-except blocks for robust file and database operations<br><br>
          <h3>All Code <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
          <pre><code class="language-python">"""
 Lcloud - Personal Cloud Storage
@@ -152,14 +154,16 @@ from wtforms import StringField, EmailField, PasswordField, SubmitField, FileFie
 from wtforms.validators import DataRequired
 from flask_bcrypt import Bcrypt
 import os
+import re
 import datetime
 import shutil
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///lcloud.db'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 database = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
@@ -183,11 +187,12 @@ class User(UserMixin, database.Model):
     hashed_password = database.Column(database.String(280), nullable=False)
     folder_path = database.Column(database.String, nullable=False)
     files = database.relationship("File", backref="owner", lazy=True)
+    maxstorage = database.Column(database.Integer, default=1024 ** 3 * 2)
 
 class File(database.Model):
     id = database.Column(database.Integer, primary_key=True)
     filename = database.Column(database.String, nullable=False)
-    filesize = database.Column(database.Integer, nullable=False)
+    filesize = database.Column(database.Float, nullable=False)
     upload_date = database.Column(database.DateTime, default=datetime.datetime.utcnow, nullable=False)
     file_path = database.Column(database.String, nullable=False)
     user_id = database.Column(database.Integer, database.ForeignKey('user.id'), nullable=False)
@@ -229,45 +234,70 @@ class DeleteAccountForm(FlaskForm):
 @app.route("/", methods=['GET','POST'])
 @app.route("/dashboard", methods=['GET','POST'])
 def dashboard():
+    user_files = File.query.filter_by(user_id=current_user.id).all()
+    total_storage = sum(f.filesize for f in user_files)
     if not current_user.is_authenticated:
         return redirect("/login")
     upload_form = FileUploadForm()
     if request.method == 'POST':
         if upload_form.validate_on_submit():
             uploaded_file = upload_form.file.data
-            user_folder_path = os.path.join(storage_folder, current_user.username)
-            saved_file_path = os.path.join(user_folder_path, uploaded_file.filename)
-            if not os.path.exists(user_folder_path):
-                try:
-                    os.mkdir(user_folder_path)
-                except Exception as e:
-                    flash(f"Failed to create user directory: {e}", "danger")
-                    return redirect("/")
-            if not os.path.exists(saved_file_path):
-                try:
-                    uploaded_file.save(saved_file_path)
-                    new_db_file = File(
-                        filename=uploaded_file.filename,
-                        filesize=os.path.getsize(saved_file_path),
-                        file_path=saved_file_path,
-                        user_id=current_user.id
-                    )
-                    database.session.add(new_db_file)
-                    database.session.commit()
-                    flash("File uploaded successfully!", "success")
-                    return redirect("/")
-                except Exception as e:
-                    flash(f"Error saving file: {e}", "danger")
+            uploaded_file_size = len(uploaded_file.read())  # read file size in bytes
+            uploaded_file.seek(0)  # reset file pointer after reading
+    
+            if total_storage + uploaded_file_size <= current_user.maxstorage:
+                # proceed with saving file as you currently do
+                user_folder_path = os.path.join(storage_folder, current_user.username)
+                clean_filename = secure_filename(uploaded_file.filename)
+                saved_file_path = os.path.join(user_folder_path, clean_filename)
+    
+                if not os.path.exists(user_folder_path):
+                    try:
+                        os.mkdir(user_folder_path)
+                    except Exception as e:
+                        flash(f"Failed to create user directory: {e}", "danger")
+                        return redirect("/")
+    
+                if not os.path.exists(saved_file_path):
+                    try:
+                        uploaded_file.save(saved_file_path)
+                        new_db_file = File(
+                            filename=clean_filename,
+                            filesize=os.path.getsize(saved_file_path),
+                            file_path=saved_file_path,
+                            user_id=current_user.id
+                        )
+                        database.session.add(new_db_file)
+                        database.session.commit()
+                        flash("File uploaded successfully!", "success")
+                        return redirect("/")
+                    except Exception as e:
+                        flash(f"Error saving file: {e}", "danger")
+                        return redirect("/")
+                else:
+                    flash("File already exists", "warning")
                     return redirect("/")
             else:
-                flash("File already exists", "warning")
+                flash("Uploading this file would exceed your storage limit.", "danger")
                 return redirect("/")
         else:
             flash("Invalid file upload", "warning")
             return redirect("/")
-    user_files = File.query.filter_by(user_id=current_user.id).order_by(File.filename.desc()).all()
-    total_storage_used = sum(int(f.filesize) for f in user_files)
-    return render_template("dashboard.html", file_upload_form=upload_form, files=user_files, rename_form=RenameForm(), total_storage=total_storage_used)
+
+    max_user_account_storage_gb = round(current_user.maxstorage / 1024 ** 3, 2)
+    total_storage_in_mb = round(total_storage / (1024 ** 2), 2)
+    total_storage_in_gb = round(total_storage / (1024 ** 3), 2)
+
+    return render_template(
+        "dashboard.html",
+        file_upload_form=upload_form,
+        files=user_files,
+        total_storage=total_storage,
+        max_user_account_storage_gb=max_user_account_storage_gb,
+        total_storage_in_mb=total_storage_in_mb,
+        total_storage_in_gb=total_storage_in_gb,
+        rename_form= RenameForm()
+    )
 
 @app.route("/register", methods=['GET','POST'])
 def register():
@@ -362,9 +392,16 @@ def rename_file():
     if request.method == 'POST':
         if rename_form.validate_on_submit():
             old_filename = request.form.get("filename")
-            new_filename = rename_form.new_filename.data
+            new_filename = secure_filename(rename_form.new_filename.data)
             file_to_rename = File.query.filter_by(filename=old_filename, user_id=current_user.id).first()
+            if not new_filename or new_filename.startswith("."):
+                flash("Invalid new filename.", "warning")
+                return redirect("/")
+
             if file_to_rename:
+                if new_filename == old_filename:
+                    flash("The new filename is the same as the old filename.", "info")
+                    return redirect("/")
                 old_file_path = file_to_rename.file_path
                 user_folder_path = os.path.dirname(old_file_path)
                 new_file_path = os.path.join(user_folder_path, new_filename)
