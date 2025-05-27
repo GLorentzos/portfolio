@@ -167,6 +167,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 database = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
+login_manager.login_view = "login"
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -230,14 +231,13 @@ class RenameForm(FlaskForm):
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField("DELETE ACCOUNT")
 
-@login_required
+
 @app.route("/", methods=['GET','POST'])
 @app.route("/dashboard", methods=['GET','POST'])
+@login_required
 def dashboard():
     user_files = File.query.filter_by(user_id=current_user.id).all()
     total_storage = sum(f.filesize for f in user_files)
-    if not current_user.is_authenticated:
-        return redirect("/login")
     upload_form = FileUploadForm()
     if request.method == 'POST':
         if upload_form.validate_on_submit():
@@ -284,6 +284,8 @@ def dashboard():
             flash("Invalid file upload", "warning")
             return redirect("/")
 
+
+
     max_user_account_storage_gb = round(current_user.maxstorage / 1024 ** 3, 2)
     total_storage_in_mb = round(total_storage / (1024 ** 2), 2)
     total_storage_in_gb = round(total_storage / (1024 ** 3), 2)
@@ -298,6 +300,7 @@ def dashboard():
         total_storage_in_gb=total_storage_in_gb,
         rename_form= RenameForm()
     )
+
 
 @app.route("/register", methods=['GET','POST'])
 def register():
@@ -355,8 +358,8 @@ def login():
             return redirect("/login")
     return render_template("login.html", login_form=login_form)
 
-@login_required
 @app.route("/delete/<string:filename>")
+@login_required
 def delete_file(filename):
     file_to_delete = File.query.filter_by(filename=filename).first()
     if file_to_delete:
@@ -372,8 +375,8 @@ def delete_file(filename):
         flash("File not found.", "warning")
     return redirect("/")
 
-@login_required
 @app.route("/download/<string:filename>")
+@login_required
 def download_file(filename):
     file_to_download = File.query.filter_by(filename=filename).first()
     if file_to_download and os.path.exists(file_to_download.file_path):
@@ -385,8 +388,8 @@ def download_file(filename):
         flash("File not found or inaccessible.", "warning")
         return redirect("/")
 
-@login_required
 @app.route("/rename", methods=['GET','POST'])
+@login_required
 def rename_file():
     rename_form = RenameForm()
     if request.method == 'POST':
@@ -427,14 +430,14 @@ def rename_file():
             return redirect("/")
     return redirect("/")
 
-@login_required
 @app.route("/logout")
+@login_required
 def logout():
     logout_user()
     return redirect("/")
 
-@login_required
 @app.route("/account", methods=['GET', 'POST'])
+@login_required
 def account():
     account_form = AccountForm()
     delete_account_form = DeleteAccountForm()
