@@ -121,24 +121,28 @@
          <p>
             Overall, these challenges significantly improved my skills with Flask, SQLAlchemy, Flask-Login, Flask-WTF, and Python's file system handling, while also enhancing my problem-solving abilities and understanding of best practices in web development.
          </p>
-    <h3>Core Functionality</h3>
-         <strong>User Authentication</strong> with session management using Flask-Login for secure login, logout, and registration<br><br>
-         <strong>Password Hashing</strong> using Flask-Bcrypt for secure password storage<br><br>
-         <strong>User-Specific Storage Folders</strong> to isolate uploaded files per user with dynamic folder creation<br><br>
-         <strong>File Upload Handling</strong> with file size tracking, secure filename handling, and metadata stored in SQLite via SQLAlchemy<br><br>
-         <strong>Storage Limit Enforcement</strong> to restrict uploads based on user-specific storage quotas (default 2GB)<br><br>
-         <strong>User-Specific Dashboards</strong> displaying files, total storage usage, and upload forms for logged-in users<br><br>
-         <strong>File Deletion</strong> to remove files from both filesystem and database with error handling<br><br>
-         <strong>File Download</strong> with secure serving from user-specific directories using Flask’s send_from_directory<br><br>
-         <strong>File Renaming</strong> with synchronized updates to filesystem and database, ensuring unique filenames per user<br><br>
-         <strong>CSRF-Protected Forms</strong> using Flask-WTF for secure user inputs across registration, login, upload, and rename forms<br><br>
-         <strong>Database ORM</strong> integration using SQLAlchemy for User and File models with relationships and unique constraints<br><br>
-         <strong>Flash Messages</strong> to provide user feedback on actions (success, warning, danger)<br><br>
-         <strong>Login-Required Decorators</strong> to protect routes and ensure authenticated access<br><br>
-         <strong>Dynamic Folder Creation</strong> for new users to manage their files in isolated directories<br><br>
-         <strong>Account Management</strong> allowing users to update username, email, password, and delete their account with associated files<br><br>
-         <strong>Environment Variable Management</strong> using python-dotenv for secure storage of sensitive data like SECRET_KEY<br><br>
-         <strong>Error Handling</strong> with custom 404 page and try-except blocks for robust file and database operations<br><br>
+<h3>Core Functionality</h3>
+<strong>User Authentication System</strong> with secure session management using Flask-Login for registration, login, and logout functionality<br><br>
+<strong>Password Security</strong> using Flask-Bcrypt for hashing and secure password storage with verification<br><br>
+<strong>File Management System</strong> allowing users to upload, download, rename, and delete files with proper access controls<br><br>
+<strong>Storage Quota Enforcement</strong> with real-time calculation of used space and prevention of uploads that exceed limits<br><br>
+<strong>User Isolation</strong> with dedicated storage folders for each user and proper file path management<br><br>
+<strong>Stripe Integration</strong> for premium subscription handling including checkout sessions, webhooks, and billing portal<br><br>
+<strong>Subscription Management</strong> with tiered storage limits (2GB Normal, 10GB Premium) and expiration tracking<br><br>
+<strong>Account Management</strong> allowing users to update their username, email, password, or delete their entire account<br><br>
+<strong>Secure File Handling</strong> using Werkzeug's secure_filename to prevent directory traversal attacks<br><br>
+<strong>Database Models</strong> for users (with subscription info) and files (with metadata) using SQLAlchemy ORM<br><br>
+<strong>Form Validation</strong> with Flask-WTF for all user inputs including registration, login, file uploads, and account changes<br><br>
+<strong>Error Handling</strong> with comprehensive flash messages for user feedback and proper exception handling<br><br>
+<strong>Protected Routes</strong> using login_required decorator to ensure authenticated access to sensitive areas<br><br>
+<strong>Dynamic Storage Display</strong> showing usage statistics in both MB and GB with visual indicators<br><br>
+<strong>File Metadata Tracking</strong> including upload dates, file sizes, and paths stored in the database<br><br>
+<strong>Cross-Platform Compatibility</strong> with proper path normalization for file operations across different OSes<br><br>
+<strong>CSRF Protection</strong> automatically applied to all forms for security against cross-site request forgery<br><br>
+<strong>Webhook Handling</strong> for processing Stripe subscription events like new signups and cancellations<br><br>
+<strong>Billing Portal Integration</strong> allowing premium users to manage their subscriptions directly<br><br>
+<strong>Automatic Cleanup</strong> of user files when accounts are deleted<br><br>
+<strong>Environment Configuration</strong> using dotenv for secure management of API keys and secrets<br>
          <h3>All Code <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
          <pre><code class="language-python">"""
 Lcloud - Personal Cloud Storage
@@ -146,7 +150,7 @@ Copyright © <span id="year"></span> George Lorentzos All rights reserved.
 Unauthorized copying, reproduction, or distribution is prohibited.
 """
 
-from flask import Flask, render_template, redirect, url_for, request, flash, send_from_directory
+from flask import Flask, render_template, redirect, url_for, request, flash, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from flask_wtf import FlaskForm
@@ -159,6 +163,7 @@ import datetime
 import shutil
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+import stripe
 
 load_dotenv()
 app = Flask(__name__)
@@ -168,10 +173,11 @@ database = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('404.html'), 404
+# @app.errorhandler(404)
+# def not_found_error(error):
+#     return render_template('404.html'), 404
 
 @login_manager.user_loader
 def load_user_by_id(user_id):
@@ -182,31 +188,39 @@ if not os.path.exists(storage_folder):
     os.mkdir(storage_folder)
 
 class User(UserMixin, database.Model):
+    __tablename__ = 'users'
     id = database.Column(database.Integer, primary_key=True)
     username = database.Column(database.String(80), unique=True, nullable=False)
     email = database.Column(database.String(255), unique=True, nullable=False)
     hashed_password = database.Column(database.String(280), nullable=False)
     folder_path = database.Column(database.String, nullable=False)
     files = database.relationship("File", backref="owner", lazy=True)
-    maxstorage = database.Column(database.Integer, default=1024 ** 3 * 2)
+    maxstorage = database.Column(database.Integer, default=1024 ** 3 * 2 , nullable=False)
+    subscription_plan = database.Column(database.String, default="Normal", nullable=False)
+    subscription_expiration_date = database.Column(database.DateTime)
+    subscription_id = database.Column(database.String, nullable=True)
+    subscription_before = database.Column(database.Boolean, default=False)
+    created_at = database.Column(database.DateTime, default=datetime.datetime.utcnow , nullable=False)
 
 class File(database.Model):
+    __tablename__ = 'files'
     id = database.Column(database.Integer, primary_key=True)
     filename = database.Column(database.String, nullable=False)
     filesize = database.Column(database.Float, nullable=False)
     upload_date = database.Column(database.DateTime, default=datetime.datetime.utcnow, nullable=False)
     file_path = database.Column(database.String, nullable=False)
-    user_id = database.Column(database.Integer, database.ForeignKey('user.id'), nullable=False)
+    user_id = database.Column(database.Integer, database.ForeignKey('users.id'), nullable=False)
 
     __table_args__ = (
-        database.UniqueConstraint('filename', 'user_id', name='unique_filename_per_user'),
+        database.UniqueConstraint('filename', 'user_id', name="unique_filename_per_user"),
     )
 
 class AccountForm(FlaskForm):
     username = StringField("name")
     email = EmailField("email")
-    password = PasswordField("password")
-    confirm_password = PasswordField("confirm_password")
+    current_password = PasswordField("current password")
+    new_password = PasswordField("new password")
+    confirm_password = PasswordField("confirm password")
     submit = SubmitField()
 
 class RegistrationForm(FlaskForm):
@@ -284,8 +298,6 @@ def dashboard():
             flash("Invalid file upload", "warning")
             return redirect("/")
 
-
-
     max_user_account_storage_gb = round(current_user.maxstorage / 1024 ** 3, 2)
     total_storage_in_mb = round(total_storage / (1024 ** 2), 2)
     total_storage_in_gb = round(total_storage / (1024 ** 3), 2)
@@ -298,7 +310,8 @@ def dashboard():
         max_user_account_storage_gb=max_user_account_storage_gb,
         total_storage_in_mb=total_storage_in_mb,
         total_storage_in_gb=total_storage_in_gb,
-        rename_form= RenameForm()
+        rename_form= RenameForm(),
+        stripe_publishable_key=os.getenv('STRIPE_PUBLISHABLE_KEY'),
     )
 
 
@@ -439,24 +452,31 @@ def logout():
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
+    user_files = File.query.filter_by(user_id=current_user.id).all()
+    total_storage = sum(f.filesize for f in user_files)
+    max_user_account_storage_gb = round(current_user.maxstorage / 1024 ** 3, 2)
+    total_storage_in_mb = round(total_storage / (1024 ** 2), 2)
+    total_storage_in_gb = round(total_storage / (1024 ** 3), 2)
     account_form = AccountForm()
     delete_account_form = DeleteAccountForm()
     if request.method == 'POST':
         if account_form.validate_on_submit():
             new_username = account_form.username.data
             new_email = account_form.email.data
-            new_password = account_form.password.data
+            current_password = account_form.current_password.data
+            new_password = account_form.new_password.data
             confirm_password = account_form.confirm_password.data
             old_username = current_user.username
             old_folder_path = os.path.join(storage_folder, old_username)
             new_folder_path = os.path.join(storage_folder, new_username)
-            if new_username and new_username != old_username:
+            if new_username and new_username != current_user.username:
                 if os.path.exists(old_folder_path):
                     try:
                         os.rename(old_folder_path, new_folder_path)
                     except Exception as e:
                         flash(f"Failed to rename user folder: {e}", "danger")
                         return redirect("/account")
+                    
                 user_files = File.query.filter_by(user_id=current_user.id).all()
                 for user_file in user_files:
                     user_file.file_path = user_file.file_path.replace(old_folder_path, new_folder_path)
@@ -464,13 +484,17 @@ def account():
             current_user.username = new_username
             if new_email and new_email != current_user.email:
                 current_user.email = new_email
-            if new_password:
+
+            if new_password or confirm_password:
+    # Only if password change is requested
+                if not bcrypt.check_password_hash(current_user.hashed_password, current_password):
+                    flash("Your current password is wrong!", "danger")
+                    return redirect("/account")
                 if new_password != confirm_password:
                     flash("Passwords do not match.", "danger")
                     return redirect("/account")
-                else:
-                    hashed_new_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-                    current_user.hashed_password = hashed_new_password
+                hashed_new_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                current_user.hashed_password = hashed_new_password
             try:
                 database.session.commit()
                 flash("Account updated successfully!", "success")
@@ -483,7 +507,15 @@ def account():
             return redirect("/account")
     account_form.username.data = current_user.username
     account_form.email.data = current_user.email
-    return render_template("account.html", account_form=account_form, BTN=delete_account_form)
+    return render_template(
+        "account.html",
+        account_form=account_form,
+        delete_account_form=delete_account_form,
+        total_storage=total_storage,
+        total_storage_in_mb=total_storage_in_mb,
+        total_storage_in_gb=total_storage_in_gb,
+        stripe_publishable_key=os.getenv('STRIPE_PUBLISHABLE_KEY'),
+        )
 
 @app.route("/delete_account", methods=['GET', 'POST'])
 @login_required
@@ -515,6 +547,104 @@ def delete_account():
     else:
         flash("Please confirm account deletion.", "warning")
         return redirect("/account")
+
+# Create product and price dynamically
+def get_or_create_premium_price():
+    product = stripe.Product.create(name="Premium")
+    price = stripe.Price.create(
+        unit_amount=2000,  # $20 in cents
+        currency="usd",
+        recurring={"interval": "month"},
+        product=product.id
+    )
+    return price.id
+
+@app.route('/create-checkout-session', methods=['POST'])
+@login_required
+def create_checkout_session():
+    price_id = get_or_create_premium_price()
+
+    session = stripe.checkout.Session.create(
+        # success_url="http://127.0.0.1:5000/success?session_id={CHECKOUT_SESSION_ID}",
+        success_url="http://127.0.0.1:5000/",
+        cancel_url="http://127.0.0.1:5000/",
+        payment_method_types=["card"],
+        mode="subscription",
+        customer_email=current_user.email,
+        line_items=[{
+            'price': price_id,
+            'quantity': 1,
+        }],
+    )
+    return jsonify({'sessionId': session.id})
+
+@app.route('/webhook', methods=['POST'])
+def stripe_webhook():
+    event = None
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except stripe.error.SignatureVerificationError:
+        return "Invalid signature", 400
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        customer_email = session.get('customer_email')
+        subscription_id = session.get('subscription')
+
+        user = User.query.filter_by(email=customer_email).first()
+        if user:
+            user.maxstorage = 1024 ** 3 * 10
+            user.subscription_plan = "Premium"
+            user.subscription_before = True
+            user.subscription_id = subscription_id
+            user.subscription_expiration_date = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+            database.session.commit()
+
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        stripe_sub_id = subscription['id']
+
+        user = User.query.filter_by(subscription_id=stripe_sub_id).first()
+        if user:
+            user.subscription_plan = "Normal"
+            user.maxstorage = 1024 ** 3 * 2  # Revert to normal plan
+            user.subscription_expiration_date = None
+            user.subscription_id = None
+            database.session.commit()
+
+    return '', 200
+
+@app.route('/create-billing-portal-session', methods=['POST'])
+@login_required
+def create_billing_portal_session():
+    if not current_user.email:
+        return jsonify({'error': 'No email associated with account'}), 400
+    
+    try:
+        # Check if customer exists in Stripe
+        customers = stripe.Customer.list(email=current_user.email)
+        
+        if len(customers.data) == 0:
+            return jsonify({'error': 'No subscription found'}), 400
+            
+        customer_id = customers.data[0].id
+        
+        # Create billing portal session
+        session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=url_for('account', _external=True)
+        )
+        
+        return jsonify({'url': session.url})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     with app.app_context():
