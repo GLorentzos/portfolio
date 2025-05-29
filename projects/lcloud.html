@@ -92,7 +92,10 @@
       <div class="container">
          <div style="background: transparent; text-align: center; padding: 30px 20px; border-radius: 8px;">
             <h1>Lcloud</h1>
-            <p style="margin-top: 10px;">A Simple Cloud Storage with Authentication , Dashboard, Account Managment</p>
+         </div>
+         <div style="background-color: var(--codebox); color: var(--blue); padding: 15px; border-radius: 6px; ">
+            <strong>Note:</strong> 
+            The frontend design of this project is not professionally styled. I use a simple and consistent frontend layout across my projects for testing purposes. For example, the login, register pages, and sometimes dashboards may look the same in multiple projects.
          </div>
          <h3>Project Details</h3>
          <p>
@@ -105,14 +108,27 @@
             <li>
                <strong>Database Relationship Issue:</strong> I initially forgot to define the foreign key relationship between the <code>File</code> and <code>User</code> models. This caused issues with file ownership and user-specific queries. I resolved it by researching on Stack Overflow and correctly implementing the foreign key using SQLAlchemy’s ORM features.
             </li>
+            <br>
             <li>
                <strong>File Renaming Complexity:</strong> Files were stored using a structured path format like <code>storage/username/filename</code>. When implementing the rename feature, I had to ensure the file path remained valid while updating only the filename. I solved this using Python's <code>os.path.dirname()</code> and <code>os.path.basename()</code> to extract and reconstruct the path safely.
+            </li>
+            <br>
+            <li>
+               <strong>Stripe Integration:</strong> One of the most challenging parts was integrating Stripe for handling subscriptions and payments. I was unfamiliar with the Stripe library and had to spend time learning how to properly use its API and webhooks to manage subscription lifecycles securely.
+            </li>
+            <br>
+            <li>
+               <strong>Time Zones and DateTime Handling:</strong> Managing subscription expiration times required careful handling of time zones and datetime conversions. I had to learn how to work with Python’s <code>datetime</code> module along with timezone-aware operations to ensure accuracy across different user regions.
+            </li>
+            <br>
+            <li>
+               <strong>Byte to MB/GB Conversion:</strong> For the first time, I had to deal with storage size conversions (from bytes to megabytes and gigabytes) to display user storage usage. I implemented proper conversion logic and formatting to ensure a clear user experience.
             </li>
          </ul>
          <p>
             Additionally, I learned to enforce unique constraints on the database by using:
          </p>
-         <pre><code>__table_args__ = (
+         <pre><code class="language-python">__table_args__ = (
     database.UniqueConstraint('filename', 'user_id', name='unique_filename_per_user'),
 )</code></pre>
          <p>
@@ -121,28 +137,54 @@
          <p>
             Overall, these challenges significantly improved my skills with Flask, SQLAlchemy, Flask-Login, Flask-WTF, and Python's file system handling, while also enhancing my problem-solving abilities and understanding of best practices in web development.
          </p>
-<h3>Core Functionality</h3>
-<strong>User Authentication System</strong> with secure session management using Flask-Login for registration, login, and logout functionality<br><br>
-<strong>Password Security</strong> using Flask-Bcrypt for hashing and secure password storage with verification<br><br>
-<strong>File Management System</strong> allowing users to upload, download, rename, and delete files with proper access controls<br><br>
-<strong>Storage Quota Enforcement</strong> with real-time calculation of used space and prevention of uploads that exceed limits<br><br>
-<strong>User Isolation</strong> with dedicated storage folders for each user and proper file path management<br><br>
-<strong>Stripe Integration</strong> for premium subscription handling including checkout sessions, webhooks, and billing portal<br><br>
-<strong>Subscription Management</strong> with tiered storage limits (2GB Normal, 10GB Premium) and expiration tracking<br><br>
-<strong>Account Management</strong> allowing users to update their username, email, password, or delete their entire account<br><br>
-<strong>Secure File Handling</strong> using Werkzeug's secure_filename to prevent directory traversal attacks<br><br>
-<strong>Database Models</strong> for users (with subscription info) and files (with metadata) using SQLAlchemy ORM<br><br>
-<strong>Form Validation</strong> with Flask-WTF for all user inputs including registration, login, file uploads, and account changes<br><br>
-<strong>Error Handling</strong> with comprehensive flash messages for user feedback and proper exception handling<br><br>
-<strong>Protected Routes</strong> using login_required decorator to ensure authenticated access to sensitive areas<br><br>
-<strong>Dynamic Storage Display</strong> showing usage statistics in both MB and GB with visual indicators<br><br>
-<strong>File Metadata Tracking</strong> including upload dates, file sizes, and paths stored in the database<br><br>
-<strong>Cross-Platform Compatibility</strong> with proper path normalization for file operations across different OSes<br><br>
-<strong>CSRF Protection</strong> automatically applied to all forms for security against cross-site request forgery<br><br>
-<strong>Webhook Handling</strong> for processing Stripe subscription events like new signups and cancellations<br><br>
-<strong>Billing Portal Integration</strong> allowing premium users to manage their subscriptions directly<br><br>
-<strong>Automatic Cleanup</strong> of user files when accounts are deleted<br><br>
-<strong>Environment Configuration</strong> using dotenv for secure management of API keys and secrets<br>
+         <h3>Core Functionality</h3>
+         <strong>User Authentication System</strong> with secure session management using Flask-Login for registration, login, and logout functionality<br><br>
+         <strong>Password Security</strong> using Flask-Bcrypt for hashing and secure password storage with verification<br><br>
+         <strong>File Management System</strong> allowing users to upload, download, rename, and delete files with proper access controls<br><br>
+         <strong>Storage Quota Enforcement</strong> with real-time calculation of used space and prevention of uploads that exceed limits<br><br>
+         <strong>User Isolation</strong> with dedicated storage folders for each user and proper file path management<br><br>
+         <strong>Stripe Integration</strong> for premium subscription handling including checkout sessions, webhooks, and billing portal<br><br>
+         <strong>Subscription Management</strong> with tiered storage limits (2GB Normal, 10GB Premium) and expiration tracking<br><br>
+         <strong>Account Management</strong> allowing users to update their username, email, password, or delete their entire account<br><br>
+         <strong>Secure File Handling</strong> using Werkzeug's secure_filename to prevent directory traversal attacks<br><br>
+         <strong>Database Models</strong> for users (with subscription info) and files (with metadata) using SQLAlchemy ORM<br><br>
+         <strong>Form Validation</strong> with Flask-WTF for all user inputs including registration, login, file uploads, and account changes<br><br>
+         <strong>Error Handling</strong> with comprehensive flash messages for user feedback and proper exception handling<br><br>
+         <strong>Protected Routes</strong> using login_required decorator to ensure authenticated access to sensitive areas<br><br>
+         <strong>Dynamic Storage Display</strong> showing usage statistics in both MB and GB with visual indicators<br><br>
+         <strong>File Metadata Tracking</strong> including upload dates, file sizes, and paths stored in the database<br><br>
+         <strong>Cross-Platform Compatibility</strong> with proper path normalization for file operations across different OSes<br><br>
+         <strong>CSRF Protection</strong> automatically applied to all forms for security against cross-site request forgery<br><br>
+         <strong>Webhook Handling</strong> for processing Stripe subscription events like new signups and cancellations<br><br>
+         <strong>Billing Portal Integration</strong> allowing premium users to manage their subscriptions directly<br><br>
+         <strong>Automatic Cleanup</strong> of user files when accounts are deleted<br><br>
+         <strong>Environment Configuration</strong> using dotenv for secure management of API keys and secrets<br>
+         <style>
+            .file-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px; /* Spacing between links */
+            }
+            .file-links a {
+            text-decoration: none;
+            color: var(--blue);
+            padding: 10px;
+            border-radius: 6px;
+            gap: 10px;
+            background-color: var(--codebox);
+            }
+         </style>
+         <h3>App Preview <span style="font-weight: normal; font-size: 0.9em;">(images)</span></h3>
+         <div class="file-links">
+            <a href="../projects/lcloud/signin.png" target="_blank">signin.png</a>
+            <a href="../projects/lcloud/signup.png" target="_blank">signup.png</a>
+            <a href="../projects/lcloud/dashboard.png" target="_blank">dashboard.png</a>
+            <a href="../projects/lcloud/profile.png" target="_blank">profile.png</a>
+            <a href="../projects/lcloud/appearance.png" target="_blank">appearance.png</a>
+            <a href="../projects/lcloud/account.png" target="_blank">account.png</a>
+            <a href="../projects/lcloud/billing_subscription.png" target="_blank">billing_with_subscription.png</a>
+            <a href="../projects/lcloud/billing_nosubscription.png" target="_blank">billing_without_subscription.png</a>
+         </div>
          <h3>All Code <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
          <pre><code class="language-python">"""
 Lcloud - Personal Cloud Storage
@@ -164,6 +206,8 @@ import shutil
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 import stripe
+from pytz import timezone as pytz_timezone
+import pytz
 
 load_dotenv()
 app = Flask(__name__)
@@ -175,9 +219,9 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-# @app.errorhandler(404)
-# def not_found_error(error):
-#     return render_template('404.html'), 404
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
 
 @login_manager.user_loader
 def load_user_by_id(user_id):
@@ -200,14 +244,15 @@ class User(UserMixin, database.Model):
     subscription_expiration_date = database.Column(database.DateTime)
     subscription_id = database.Column(database.String, nullable=True)
     subscription_before = database.Column(database.Boolean, default=False)
-    created_at = database.Column(database.DateTime, default=datetime.datetime.utcnow , nullable=False)
+    timezone = database.Column(database.String, nullable=False, default="UTC")
+    created_at = database.Column(database.DateTime, nullable=False)
 
 class File(database.Model):
     __tablename__ = 'files'
     id = database.Column(database.Integer, primary_key=True)
     filename = database.Column(database.String, nullable=False)
     filesize = database.Column(database.Float, nullable=False)
-    upload_date = database.Column(database.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    upload_date = database.Column(database.DateTime, nullable=False)
     file_path = database.Column(database.String, nullable=False)
     user_id = database.Column(database.Integer, database.ForeignKey('users.id'), nullable=False)
 
@@ -243,8 +288,7 @@ class RenameForm(FlaskForm):
     submit = SubmitField()
 
 class DeleteAccountForm(FlaskForm):
-    submit = SubmitField("DELETE ACCOUNT")
-
+    submit = SubmitField("Delete Account")
 
 @app.route("/", methods=['GET','POST'])
 @app.route("/dashboard", methods=['GET','POST'])
@@ -256,11 +300,10 @@ def dashboard():
     if request.method == 'POST':
         if upload_form.validate_on_submit():
             uploaded_file = upload_form.file.data
-            uploaded_file_size = len(uploaded_file.read())  # read file size in bytes
-            uploaded_file.seek(0)  # reset file pointer after reading
+            uploaded_file_size = len(uploaded_file.read())
+            uploaded_file.seek(0)
     
             if total_storage + uploaded_file_size <= current_user.maxstorage:
-                # proceed with saving file as you currently do
                 user_folder_path = os.path.join(storage_folder, current_user.username)
                 clean_filename = secure_filename(uploaded_file.filename)
                 saved_file_path = os.path.join(user_folder_path, clean_filename)
@@ -275,11 +318,22 @@ def dashboard():
                 if not os.path.exists(saved_file_path):
                     try:
                         uploaded_file.save(saved_file_path)
+
+                        timezone_str = request.form.get("timezone", "UTC")
+                        try:
+                            user_tz = pytz_timezone(timezone_str)
+                        except:
+                            user_tz = pytz.UTC
+                            
+                        utc_now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+                        local_now = utc_now.astimezone(user_tz)
+
                         new_db_file = File(
                             filename=clean_filename,
                             filesize=os.path.getsize(saved_file_path),
                             file_path=saved_file_path,
-                            user_id=current_user.id
+                            user_id=current_user.id,
+                            upload_date=local_now
                         )
                         database.session.add(new_db_file)
                         database.session.commit()
@@ -314,7 +368,6 @@ def dashboard():
         stripe_publishable_key=os.getenv('STRIPE_PUBLISHABLE_KEY'),
     )
 
-
 @app.route("/register", methods=['GET','POST'])
 def register():
     registration_form = RegistrationForm()
@@ -322,9 +375,22 @@ def register():
         if registration_form.validate_on_submit():
             username = str(registration_form.username.data)
             email = registration_form.email.data
+            timezone_str = request.form.get("timezone", "UTC")
+
+            try:
+                user_tz = pytz_timezone(timezone_str)
+            except:
+                user_tz = pytz.UTC
+
+            utc_now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+            local_now = utc_now.astimezone(user_tz)
+
+            created_at = local_now
+
             hashed_password = bcrypt.generate_password_hash(registration_form.password.data).decode('utf-8')
             existing_user = User.query.filter_by(username=username).first()
             existing_email = User.query.filter_by(email=email).first()
+
             if existing_user:
                 flash("Name already exists", "warning")
                 return redirect("/register")
@@ -336,7 +402,14 @@ def register():
                     user_folder_path = os.path.join(storage_folder, username)
                     if not os.path.exists(user_folder_path):
                         os.mkdir(user_folder_path)
-                    new_user = User(username=username, email=email, hashed_password=hashed_password, folder_path=user_folder_path)
+                    new_user = User(
+                        username=username,
+                        email=email,
+                        hashed_password=hashed_password,
+                        folder_path=user_folder_path,
+                        created_at=created_at,
+                        timezone=timezone_str
+                    )
                     database.session.add(new_user)
                     database.session.commit()
                     flash("Registration successful. Please log in.", "success")
@@ -344,9 +417,6 @@ def register():
                 except Exception as e:
                     flash(f"Error during registration: {e}", "danger")
                     return redirect("/register")
-        else:
-            flash("Please fill out the form correctly.", "warning")
-            return redirect("/register")
     return render_template("register.html", register_form=registration_form)
 
 @app.route("/login",methods=['GET','POST'])
@@ -486,7 +556,6 @@ def account():
                 current_user.email = new_email
 
             if new_password or confirm_password:
-    # Only if password change is requested
                 if not bcrypt.check_password_hash(current_user.hashed_password, current_password):
                     flash("Your current password is wrong!", "danger")
                     return redirect("/account")
@@ -548,11 +617,10 @@ def delete_account():
         flash("Please confirm account deletion.", "warning")
         return redirect("/account")
 
-# Create product and price dynamically
 def get_or_create_premium_price():
     product = stripe.Product.create(name="Premium")
     price = stripe.Price.create(
-        unit_amount=2000,  # $20 in cents
+        unit_amount=2000,
         currency="usd",
         recurring={"interval": "month"},
         product=product.id
@@ -565,7 +633,6 @@ def create_checkout_session():
     price_id = get_or_create_premium_price()
 
     session = stripe.checkout.Session.create(
-        # success_url="http://127.0.0.1:5000/success?session_id={CHECKOUT_SESSION_ID}",
         success_url="http://127.0.0.1:5000/",
         cancel_url="http://127.0.0.1:5000/",
         payment_method_types=["card"],
@@ -599,11 +666,19 @@ def stripe_webhook():
 
         user = User.query.filter_by(email=customer_email).first()
         if user:
+            try:
+                user_tz = pytz_timezone(user.timezone)
+            except Exception:
+                user_tz = "UTC"
+
+        utc_now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)     
+
+        if user:
             user.maxstorage = 1024 ** 3 * 10
             user.subscription_plan = "Premium"
             user.subscription_before = True
             user.subscription_id = subscription_id
-            user.subscription_expiration_date = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+            user.subscription_expiration_date = utc_now.astimezone(user_tz) + datetime.timedelta(days=30)
             database.session.commit()
 
     elif event['type'] == 'customer.subscription.deleted':
@@ -613,7 +688,7 @@ def stripe_webhook():
         user = User.query.filter_by(subscription_id=stripe_sub_id).first()
         if user:
             user.subscription_plan = "Normal"
-            user.maxstorage = 1024 ** 3 * 2  # Revert to normal plan
+            user.maxstorage = 1024 ** 3 * 2
             user.subscription_expiration_date = None
             user.subscription_id = None
             database.session.commit()
@@ -627,7 +702,6 @@ def create_billing_portal_session():
         return jsonify({'error': 'No email associated with account'}), 400
     
     try:
-        # Check if customer exists in Stripe
         customers = stripe.Customer.list(email=current_user.email)
         
         if len(customers.data) == 0:
@@ -635,7 +709,6 @@ def create_billing_portal_session():
             
         customer_id = customers.data[0].id
         
-        # Create billing portal session
         session = stripe.billing_portal.Session.create(
             customer=customer_id,
             return_url=url_for('account', _external=True)
