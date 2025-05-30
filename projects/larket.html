@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Larket</title>
+      <link rel="icon" href="../images/website_icon.svg">
+      <meta name="author" content="George Lorentzos">
+      <style>
+         :root {
+         --blue: #4daafc;
+         --foreground: #9ba3b4;
+         --background: #0D1117;
+         --header-foreground: #c3d0e5;
+         --codebox: #181f29;
+         }
+         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+         html, body {
+         height: 100%;
+         margin: 0;
+         background: var(--background);
+         color: var(--foreground);
+         font-family: 'Montserrat', sans-serif;
+         line-height: 1.6;
+         -webkit-font-smoothing: antialiased;
+         -moz-osx-font-smoothing: grayscale;
+         }
+         html::-webkit-scrollbar {
+         display: none;
+         }
+         body {
+         padding: 0 15px;
+         box-sizing: border-box;
+         }
+         .container {
+         max-width: 600px;
+         margin: 0 auto;
+         border-radius: 8px;
+         }
+         h1, h2, h3 {
+         color: var(--header-foreground);
+         font-weight: 600;
+         margin-bottom: 0.5em;
+         }
+         h3 {
+         font-size: 1.3em;
+         padding-bottom: 0.5em;
+         }
+         p {
+         margin-top: 0.4em;
+         margin-bottom: 0.8em;
+         }
+         a:hover {
+         text-decoration: underline;
+         }
+         pre {
+         background: var(--codebox);
+         border-radius: 6px;
+         padding: 1.2em;
+         overflow-x: auto;
+         font-size: 0.9rem;
+         line-height: 1.4;
+         margin: 1.5em 0;
+         }
+         pre > code {
+         background: transparent;
+         font-family: 'Fira Code', 'Consolas', monospace;
+         }
+         html::-webkit-scrollbar{
+         display: none;
+         }
+         pre::-webkit-scrollbar {
+         width: 8px;
+         height: 8px;
+         }
+         pre::-webkit-scrollbar-track {
+         background: transparent;
+         border-radius: 8px;
+         }
+         pre::-webkit-scrollbar-thumb {
+         background-color: var(--blue);
+         border-radius: 8px;
+         }
+         .footer {
+         text-align: center;
+         margin-top: 40px;
+         font-size: 0.9em;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <div style="background: transparent; text-align: center; padding: 30px 20px; border-radius: 8px;">
+            <h1>Larket</h1>
+            <span style="
+    display: inline-block;
+    padding: 10px 20px;
+    border: 1px solid red;
+    background-color: #330000;
+    color: #ff4d4d; /* light neon red */
+    font-weight: bold;
+    font-family: 'Arial', sans-serif;
+    border-radius: 5px;
+    ">
+    Under Construction
+</span>
+         </div>
+         
+         <div style="background-color: var(--codebox); color: var(--blue); padding: 15px; border-radius: 6px; ">
+        <strong>Note:</strong> The project is under construction. This is just a first view of how it looks and how it works.
+
+         </div>
+         <h3>Project Details</h3>
+         <p>
+         I started building it a few days ago and am actively working on it. It's a full e-commerce web application, and this is just an early view of how it looks and functions.
+         </p>
+       <h3>Core Functionality</h3>
+
+
+<strong>User Authentication & Authorization</strong> including user registration, login, logout, and role-based access control<br><br>
+
+<strong>Product Management</strong> with features for adding, editing, deleting, and viewing products via an admin dashboard<br><br>
+
+<strong>Shopping Cart System</strong> that allows users to add, update, and remove items from their cart with real-time updates<br><br>
+
+<strong>Checkout Process</strong> with dynamic order summary, shipping options, and tax calculations<br><br>
+
+<strong>Stripe Integration</strong> for secure and reliable payment processing with support for one-time and subscription-based payments<br><br>
+
+<strong>Order Management</strong> including order placement, status updates, and order history for users and admins<br><br>
+
+<strong>Product Search and Filtering</strong> with keyword search, category filters, and price range selectors<br><br>
+
+<strong>Inventory Management</strong> that tracks product stock levels and alerts for low inventory<br><br>
+
+<strong>Responsive Frontend UI</strong> using a consistent layout designed for mobile and desktop devices<br><br>
+
+<strong>Secure Environment Configuration</strong> using environment variables and `python-dotenv` to protect sensitive information<br><br>
+
+<strong>Email Notifications</strong> for order confirmation, account creation, and password reset<br><br>
+
+<strong>AJAX-Based Communication</strong> for cart updates, product filtering, and dynamic content loading without page refresh<br><br>
+
+<strong>Real-Time Feedback</strong> using modals, toasts, and inline messages for user interactions<br><br>
+
+         <style>
+            .file-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            }
+            .file-links a {
+            text-decoration: none;
+            color: var(--blue);
+            padding: 10px;
+            border-radius: 6px;
+            gap: 10px;
+            background-color: var(--codebox);
+            }
+         </style>
+         <h3>App Preview <span style="font-weight: normal; font-size: 0.9em;">(images)</span></h3>
+         <div class="file-links">
+            <a href="../projects/larket/shop.png" target="_blank">shop.png</a>
+            <a href="../projects/larket/signin.png" target="_blank">signin.png</a>
+         </div>
+         <h3>All Code <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
+         <pre><code class="language-python">"""
+Larket – Full E-commerce Web App  
+Under Construction
+"""
+
+from flask import Flask, request, render_template, redirect , url_for, flash, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+import os
+from flask_login import UserMixin, LoginManager, login_user, current_user, login_required
+from datetime import datetime
+from flask_wtf import FlaskForm
+from wtforms import StringField, EmailField , IntegerField, PasswordField, SubmitField, HiddenField, SelectField, FileField
+from wtforms.validators import DataRequired, NumberRange
+from sqlalchemy import or_
+from flask_bcrypt import Bcrypt
+from werkzeug.utils import secure_filename
+from wtforms import DecimalField
+
+load_dotenv()
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///larket.db'
+db = SQLAlchemy(app)
+lg = LoginManager(app)
+bc = Bcrypt(app)
+upload_folder = 'static/images'
+lg.login_view = "login"
+
+@lg.user_loader
+def user_loader(user_id):
+    return User.query.get(int(user_id))
+
+if not os.path.exists(upload_folder):
+    os.makedirs(upload_folder)
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=True, nullable=False)
+    phonenumber = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
+    createdat = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    cart = db.relationship('Cart', backref='cart_owner', lazy=True)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+
+    def __repr__(self):
+        return self.username
+
+class Cart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return self.name
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    image = db.Column(db.String, nullable=True)
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    categoryid = db.Column(db.String, db.ForeignKey('category.id'), nullable=False)
+    category = db.relationship('Category', backref='products')
+    quantity = db.Column(db.Integer, default=0, nullable=False)
+    is_available = db.Column(db.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return self.name
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False, unique=True)
+
+    def __repr__(self):
+        return self.name
+
+class LoginForm(FlaskForm):
+    username_or_email = StringField("username or email", validators=[DataRequired()])
+    password = PasswordField("password", validators=[DataRequired()])
+    submit = SubmitField()
+
+class AddToCartForm(FlaskForm):
+    product_id = HiddenField("Product ID", validators=[DataRequired()])
+    price = DecimalField("product price", places=2, validators=[DataRequired()])
+    quantity = IntegerField("quantity", validators=[DataRequired(),NumberRange(min=1)])
+    submit = SubmitField("Add to Cart")
+
+class CreateProduct(FlaskForm):
+    image = FileField("upload image", validators=[DataRequired()])
+    name = StringField("name" , validators=[DataRequired()])
+    description = StringField("description" , validators=[DataRequired()])
+    price = DecimalField("price", places=2, validators=[DataRequired()])
+    quantity = IntegerField("quantity" , validators=[DataRequired(), NumberRange(min=1)], default=1)
+    category = SelectField("category", coerce=int , validators=[DataRequired()])
+    submit = SubmitField()
+
+class CreateCategory(FlaskForm):
+    name = StringField("category name", validators=[DataRequired()])
+    submit = SubmitField()
+
+@app.route("/")
+def shop():
+    products = Product.query.all()
+    categories = Category.query.all()
+    cart_items = []
+    if current_user.is_authenticated:
+        cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+    return render_template(
+        "shop.html",
+        products=products,
+        form=AddToCartForm(),
+        cart_items=cart_items,
+        categories=categories
+        )
+
+@app.route("/login", methods=['GET','POST'])
+def login():
+    form = LoginForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        username_or_email = form.username_or_email.data
+        password = form.password.data
+
+        user = User.query.filter(or_(User.username == username_or_email, User.email == username_or_email)).first()
+
+        if not user:
+            flash("User doesn’t exist")
+            return redirect("/login")
+        elif user and bc.check_password_hash(user.password, password):
+            login_user(user)
+            return redirect("/")
+        elif user and not bc.check_password_hash(user.password, password):
+            flash("Incorrect password")
+            return redirect("/login")
+        
+    return render_template("login.html", form=form)
+
+@app.route("/addtocart",methods=['GET','POST'])
+@login_required
+def addtocart():
+    form = AddToCartForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        product_id = form.product_id.data
+        price = form.price.data
+        quantity = form.quantity.data
+
+        if not product_id:
+            flash("product not found")
+            return redirect("/")
+        else:
+            itemforadd = Cart(name=product_id, price=price, quantity=quantity, user_id=current_user.id)
+            db.session.add(itemforadd)
+            db.session.commit()
+            return redirect("/")
+    
+    return redirect("/")
+
+@app.route("/admin", methods=['GET','POST'])
+@login_required
+def admin():
+
+    if not current_user.is_admin:
+        return redirect(url_for("login"))
+    
+    cp = CreateProduct()
+    cc = CreateCategory()
+
+    cp.category.choices = [(c.id, c.name) for c in Category.query.all()]
+    if cp.validate_on_submit() and request.method == 'POST':
+        name = cp.name.data
+        price = cp.price.data
+        quantity = cp.quantity.data
+        image = cp.image.data
+        description = cp.description.data
+        category = cp.category.data
+        
+        filename = secure_filename(image.filename)
+        imagepath = os.path.join(upload_folder, filename)
+        image.save(imagepath)
+
+        product = Product(
+            name=name,
+            price=price,
+            quantity=quantity,
+            image=imagepath,
+            description=description,
+            categoryid=category,
+        )
+
+        db.session.add(product)
+        db.session.commit()
+        return redirect("/admin")
+    
+    elif cc.validate_on_submit() and request.method == 'POST':   
+        name = cc.name.data.strip()
+
+        existing_category = Category.query.filter_by(name=name).first()
+        if existing_category:
+            flash(f"Category '{name}' already exists.")
+        else:
+            category = Category(name=name)
+            db.session.add(category)
+            db.session.commit()
+            db.session.add(category)
+            db.session.commit()
+            return redirect("/admin")
+    
+    return render_template("admin.html", cp=cp, cc=cc)
+
+@app.route("/serverimage/<pid>")
+def serverimage(pid):
+    product = Product.query.filter_by(id=pid).first()
+    return send_from_directory(upload_folder, os.path.basename(product.image))
+    
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
+        # adding a user with admin role so I can test stuff
+        if not User.query.filter_by(username="lorentzos").first():
+            hp = bc.generate_password_hash("lorentzos").decode('utf-8')
+            newuser = User(
+                username="lorentzos",
+                password=hp,
+                phonenumber="123456789",
+                email="georgelorentzos08@gmail.com",
+                is_admin=True
+            )
+            db.session.add(newuser)
+            db.session.commit()
+        
+    app.run(debug=True)</code></pre>
+         <div class="footer">
+            <span>© 2025 Lorentzos.</span>
+         </div>
+         <br>
+      </div>
+      <script>
+         document.addEventListener('DOMContentLoaded', function () {
+         const keywords = ['def', 'return', 'if', 'else', 'elif', 'for', 'while', 'in', 'and', 'or', 'not', 'class', 'from', 'import', 'as', 'with', 'try', 'except', 'finally', 'raise'];
+         const builtins = ['print', 'len', 'int', 'str', 'list', 'dict', 'set', 'bool', 'range', 'type', 'None', 'True', 'False'];
+         document.querySelectorAll('pre > code').forEach(codeBlock => {
+           if (codeBlock.classList.contains('language-python') || codeBlock.textContent.match(/\b(def|return|from|import)\b/)) {
+             codeBlock.classList.add('language-python');
+             const text = codeBlock.textContent;
+             const tokens = [];
+             let current = '';
+             let i = 0;
+             while (i < text.length) {
+               if (text[i].match(/[a-zA-Z_]/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let word = '';
+                 while (i < text.length && text[i].match(/[a-zA-Z0-9_]/)) {
+                   word += text[i];
+                   i++;
+                 }
+                 if (keywords.includes(word)) {
+                   tokens.push(`<span class="token-keyword">${word}</span>`);
+                 } else if (builtins.includes(word)) {
+                   tokens.push(`<span class="token-builtin">${word}</span>`);
+                 } else if (word && tokens[tokens.length-1] === '<span class="token-keyword">def</span> ') {
+                   tokens.push(`<span class="token-function">${word}</span>`);
+                 } else {
+                   tokens.push(word);
+                 }
+                 continue;
+               }
+               if (text[i] === "'" || text[i] === '"') {
+                 let str = text[i];
+                 i++;
+                 while (i < text.length && text[i] !== str[0]) {
+                   str += text[i];
+                   i++;
+                 }
+                 if (i < text.length) str += text[i];
+                 i++;
+                 tokens.push(`<span class="token-string">${str}</span>`);
+                 continue;
+               }
+               if (text[i].match(/\d/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let num = '';
+                 while (i < text.length && text[i].match(/\d/)) {
+                   num += text[i];
+                   i++;
+                 }
+                 tokens.push(`<span class="token-number">${num}</span>`);
+                 continue;
+               }
+               if (text[i].match(/[.,:;()\[\]{}]/)) {
+                 tokens.push(`<span class="token-punctuation">${text[i]}</span>`);
+                 i++;
+                 continue;
+               }
+               tokens.push(text[i]);
+               i++;
+             }
+             codeBlock.innerHTML = tokens.join('');
+           }
+         });
+         const style = document.createElement('style');
+         style.textContent = `
+           pre > code.language-python {
+             background: var(--codebox);
+             color: #abb2bf;
+             font-family: 'Fira Code', 'Consolas', monospace;
+           }
+           pre > code.language-python .token-keyword {
+             color: #c678dd;
+           }
+           pre > code.language-python .token-function {
+             color: #e6c07b;
+           }
+           pre > code.language-python .token-string {
+             color: #98c379;
+           }
+           pre > code.language-python .token-number {
+             color: #d19a66;
+           }
+           pre > code.language-python .token-builtin {
+             color: #56b6c2;
+           }
+           pre > code.language-python .token-punctuation {
+             color: #abb2bf;
+           }
+         `;
+         document.head.appendChild(style);
+         });
+      </script>
+      <script>
+         document.getElementById('year').textContent = new Date().getFullYear();
+      </script>
+   </body>
+</html>
