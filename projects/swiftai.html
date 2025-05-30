@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>SwiftAI</title>
+      <link rel="icon" href="../images/website_icon.svg">
+      <meta name="author" content="George Lorentzos">
+      <style>
+         :root {
+         --blue: #4daafc;
+         --foreground: #9ba3b4;
+         --background: #0D1117;
+         --header-foreground: #c3d0e5;
+         --codebox: #181f29;
+         }
+         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+         html, body {
+         height: 100%;
+         margin: 0;
+         background: var(--background);
+         color: var(--foreground);
+         font-family: 'Montserrat', sans-serif;
+         line-height: 1.6;
+         -webkit-font-smoothing: antialiased;
+         -moz-osx-font-smoothing: grayscale;
+         }
+         html::-webkit-scrollbar {
+         display: none;
+         }
+         body {
+         padding: 0 15px;
+         box-sizing: border-box;
+         }
+         .container {
+         max-width: 600px;
+         margin: 0 auto;
+         border-radius: 8px;
+         }
+         h1, h2, h3 {
+         color: var(--header-foreground);
+         font-weight: 600;
+         margin-bottom: 0.5em;
+         }
+         h3 {
+         font-size: 1.3em;
+         padding-bottom: 0.5em;
+         }
+         p {
+         margin-top: 0.4em;
+         margin-bottom: 0.8em;
+         }
+         a:hover {
+         text-decoration: underline;
+         }
+         pre {
+         background: var(--codebox);
+         border-radius: 6px;
+         padding: 1.2em;
+         overflow-x: auto;
+         font-size: 0.9rem;
+         line-height: 1.4;
+         margin: 1.5em 0;
+         }
+         pre > code {
+         background: transparent;
+         font-family: 'Fira Code', 'Consolas', monospace;
+         }
+         html::-webkit-scrollbar{
+         display: none;
+         }
+         pre::-webkit-scrollbar {
+         width: 8px;
+         height: 8px;
+         }
+         pre::-webkit-scrollbar-track {
+         background: transparent;
+         border-radius: 8px;
+         }
+         pre::-webkit-scrollbar-thumb {
+         background-color: var(--blue);
+         border-radius: 8px;
+         }
+         .footer {
+         text-align: center;
+         margin-top: 40px;
+         font-size: 0.9em;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <div style="background: transparent; text-align: center; padding: 30px 20px; border-radius: 8px;">
+            <h1>SwiftAI</h1>
+         </div>
+         <div style="background-color: var(--codebox); color: var(--blue); padding: 15px; border-radius: 6px; ">
+            <strong>Note:</strong> The frontend design of this project is not professionally styled. I use a simple and consistent frontend layout for testing purposes.
+         </div>
+         <h3>Project Details</h3>
+         <p>
+         I built this project alone and did not face any problems during development. I created it because I was bored and wanted to practice my skills.
+         </p>
+       <h3>Core Functionality</h3>
+<strong>Environment variable management</strong> using python-dotenv for securely loading API keys<br><br>
+<strong>Groq API integration</strong> with the LLaMA3-8B model for generating AI responses<br><br>
+<strong>Streaming response support</strong> to deliver AI replies in real time as chunks<br><br>
+<strong>AJAX-based communication</strong> via POST requests to `/chat` using JSON<br><br>
+
+         <style>
+            .file-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            }
+            .file-links a {
+            text-decoration: none;
+            color: var(--blue);
+            padding: 10px;
+            border-radius: 6px;
+            gap: 10px;
+            background-color: var(--codebox);
+            }
+         </style>
+         <h3>App Preview <span style="font-weight: normal; font-size: 0.9em;">(images)</span></h3>
+         <div class="file-links">
+            <a href="../projects/swiftai/chat.png" target="_blank">chat.png</a>
+         </div>
+         <h3>All Code <span style="font-weight: normal; font-size: 0.9em;">(app.py)</span></h3>
+         <pre><code class="language-python">"""
+SwiftAI - Personal AI
+Copyright © <span id="year"></span> George Lorentzos All rights reserved.
+"""
+
+from flask import Flask, render_template, request, jsonify
+from groq import Groq
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+app = Flask(__name__)
+
+groq_api_key = os.getenv("GROQ_API_KEY")
+groq_client = Groq(api_key=groq_api_key)
+
+@app.route('/')
+def chat():
+    return render_template('chat.html')
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_message = request.json['message']
+
+    completion = groq_client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[
+            {"role": "user", "content": user_message}
+        ],
+        temperature=1,
+        max_tokens=1200,
+        top_p=1,
+        stream=True,
+        stop=None,
+    )
+
+    response = ""
+    for chunk in completion:
+        response += chunk.choices[0].delta.content or ""
+
+    return jsonify(reply=response)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+</code></pre>
+         <div class="footer">
+            <span>© 2025 Lorentzos.</span>
+         </div>
+         <br>
+      </div>
+      <script>
+         document.addEventListener('DOMContentLoaded', function () {
+         const keywords = ['def', 'return', 'if', 'else', 'elif', 'for', 'while', 'in', 'and', 'or', 'not', 'class', 'from', 'import', 'as', 'with', 'try', 'except', 'finally', 'raise'];
+         const builtins = ['print', 'len', 'int', 'str', 'list', 'dict', 'set', 'bool', 'range', 'type', 'None', 'True', 'False'];
+         document.querySelectorAll('pre > code').forEach(codeBlock => {
+           if (codeBlock.classList.contains('language-python') || codeBlock.textContent.match(/\b(def|return|from|import)\b/)) {
+             codeBlock.classList.add('language-python');
+             const text = codeBlock.textContent;
+             const tokens = [];
+             let current = '';
+             let i = 0;
+             while (i < text.length) {
+               if (text[i].match(/[a-zA-Z_]/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let word = '';
+                 while (i < text.length && text[i].match(/[a-zA-Z0-9_]/)) {
+                   word += text[i];
+                   i++;
+                 }
+                 if (keywords.includes(word)) {
+                   tokens.push(`<span class="token-keyword">${word}</span>`);
+                 } else if (builtins.includes(word)) {
+                   tokens.push(`<span class="token-builtin">${word}</span>`);
+                 } else if (word && tokens[tokens.length-1] === '<span class="token-keyword">def</span> ') {
+                   tokens.push(`<span class="token-function">${word}</span>`);
+                 } else {
+                   tokens.push(word);
+                 }
+                 continue;
+               }
+               if (text[i] === "'" || text[i] === '"') {
+                 let str = text[i];
+                 i++;
+                 while (i < text.length && text[i] !== str[0]) {
+                   str += text[i];
+                   i++;
+                 }
+                 if (i < text.length) str += text[i];
+                 i++;
+                 tokens.push(`<span class="token-string">${str}</span>`);
+                 continue;
+               }
+               if (text[i].match(/\d/) && (i === 0 || !text[i-1].match(/[a-zA-Z0-9_]/))) {
+                 let num = '';
+                 while (i < text.length && text[i].match(/\d/)) {
+                   num += text[i];
+                   i++;
+                 }
+                 tokens.push(`<span class="token-number">${num}</span>`);
+                 continue;
+               }
+               if (text[i].match(/[.,:;()\[\]{}]/)) {
+                 tokens.push(`<span class="token-punctuation">${text[i]}</span>`);
+                 i++;
+                 continue;
+               }
+               tokens.push(text[i]);
+               i++;
+             }
+             codeBlock.innerHTML = tokens.join('');
+           }
+         });
+         const style = document.createElement('style');
+         style.textContent = `
+           pre > code.language-python {
+             background: var(--codebox);
+             color: #abb2bf;
+             font-family: 'Fira Code', 'Consolas', monospace;
+           }
+           pre > code.language-python .token-keyword {
+             color: #c678dd;
+           }
+           pre > code.language-python .token-function {
+             color: #e6c07b;
+           }
+           pre > code.language-python .token-string {
+             color: #98c379;
+           }
+           pre > code.language-python .token-number {
+             color: #d19a66;
+           }
+           pre > code.language-python .token-builtin {
+             color: #56b6c2;
+           }
+           pre > code.language-python .token-punctuation {
+             color: #abb2bf;
+           }
+         `;
+         document.head.appendChild(style);
+         });
+      </script>
+      <script>
+         document.getElementById('year').textContent = new Date().getFullYear();
+      </script>
+   </body>
+</html>
